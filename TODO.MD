@@ -52,10 +52,10 @@
   - [x] 에러 핸들링 추가
 
 ### 1.5 공통 컴포넌트
-- [ ] `components/ui/loading.tsx` - 로딩 스피너
-- [ ] `components/ui/skeleton-card.tsx` - 스켈레톤 UI
-- [ ] `components/ui/error-message.tsx` - 에러 메시지
-- [ ] `components/ui/empty-state.tsx` - 빈 상태 메시지
+- [x] `components/ui/loading.tsx` - 로딩 스피너
+- [x] `components/ui/skeleton-card.tsx` - 스켈레톤 UI
+- [x] `components/ui/error-message.tsx` - 에러 메시지
+- [x] `components/ui/empty-state.tsx` - 빈 상태 메시지
 
 ---
 
