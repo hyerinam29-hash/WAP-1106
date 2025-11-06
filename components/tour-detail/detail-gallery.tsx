@@ -71,22 +71,105 @@ export function DetailGallery({
   const [modalIndex, setModalIndex] = useState(0);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
-  // 이미지가 없으면 null 반환
+  // 이미지 URL이 있는 이미지만 필터링 및 정리
+  const validImages = images
+    ? images
+        .map((img, idx) => ({
+          ...img,
+          originalIndex: idx,
+          mainUrl: img.originimgurl || img.smallimageurl || null,
+          thumbnailUrl: img.smallimageurl || img.originimgurl || null,
+        }))
+        .filter((img) => img.mainUrl && img.thumbnailUrl)
+    : [];
+
+  /**
+   * 모달에서 다음 이미지로 이동
+   */
+  const handleModalNext = useCallback(() => {
+    if (validImages.length === 0) return;
+    const next = (modalIndex + 1) % validImages.length;
+    console.log("➡️ 모달에서 다음 이미지로 이동:", {
+      from: modalIndex,
+      to: next,
+      total: validImages.length,
+    });
+    setModalIndex(next);
+  }, [modalIndex, validImages.length]);
+
+  /**
+   * 모달에서 이전 이미지로 이동
+   */
+  const handleModalPrev = useCallback(() => {
+    if (validImages.length === 0) return;
+    const prev = (modalIndex - 1 + validImages.length) % validImages.length;
+    console.log("⬅️ 모달에서 이전 이미지로 이동:", {
+      from: modalIndex,
+      to: prev,
+      total: validImages.length,
+    });
+    setModalIndex(prev);
+  }, [modalIndex, validImages.length]);
+
+  /**
+   * 키보드 네비게이션 (모달 열려있을 때)
+   */
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleModalPrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleModalNext();
+      } else if (e.key === "Escape") {
+        console.log("🔙 ESC 키로 모달 닫기");
+        setIsModalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen, handleModalNext, handleModalPrev]);
+
+  // 현재 이미지
+  const currentImage = validImages[currentIndex];
+  const hasError = imageErrors.has(currentIndex);
+
+  /**
+   * currentIndex 변경 추적
+   */
+  useEffect(() => {
+    if (validImages.length > 0 && currentImage) {
+      console.log("🔄 메인 이미지 변경:", {
+        index: currentIndex,
+        imageUrl: currentImage.mainUrl,
+        imageName: currentImage.imgname,
+      });
+    }
+  }, [currentIndex, validImages, currentImage]);
+
+  /**
+   * modalIndex 변경 추적
+   */
+  useEffect(() => {
+    if (isModalOpen && validImages.length > 0 && validImages[modalIndex]) {
+      console.log("🔄 모달 이미지 변경:", {
+        index: modalIndex,
+        imageUrl: validImages[modalIndex].mainUrl,
+        imageName: validImages[modalIndex].imgname,
+      });
+    }
+  }, [modalIndex, isModalOpen, validImages]);
+
+  // 이미지가 없으면 null 반환 (모든 hooks 선언 후)
   if (!images || images.length === 0) {
     console.log("⚠️ 이미지가 없습니다.");
     console.groupEnd();
     return null;
   }
-
-  // 이미지 URL이 있는 이미지만 필터링 및 정리
-  const validImages = images
-    .map((img, idx) => ({
-      ...img,
-      originalIndex: idx,
-      mainUrl: img.originimgurl || img.smallimageurl || null,
-      thumbnailUrl: img.smallimageurl || img.originimgurl || null,
-    }))
-    .filter((img) => img.mainUrl && img.thumbnailUrl);
 
   // 유효한 이미지가 없으면 null 반환
   if (validImages.length === 0) {
