@@ -25,6 +25,10 @@
   - [ ] Google Cloud Console에서 Maps JavaScript API 활성화
 - [x] Clerk 환경 변수 설정
 - [x] Supabase 환경 변수 설정
+- [x] 환경 변수 확인 기능 구현
+  - [x] `lib/utils/env-check.ts` 생성 (환경 변수 확인 유틸리티)
+  - [x] `app/env-check/page.tsx` 생성 (환경 변수 설정 상태 확인 페이지)
+  - [ ] `/env-check` 페이지에서 환경 변수 설정 상태 확인 후 API 키 발급 완료 체크
 
 ### 1.3 기본 타입 정의
 - [ ] `lib/types/tour.ts` 생성
