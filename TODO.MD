@@ -31,13 +31,13 @@
   - [x] `/env-check` 페이지에서 환경 변수 설정 상태 확인 후 API 키 발급 완료 체크
 
 ### 1.3 기본 타입 정의
-- [ ] `lib/types/tour.ts` 생성
-  - [ ] `TourItem` 인터페이스 (관광지 목록)
-  - [ ] `TourDetail` 인터페이스 (상세 정보)
-  - [ ] `TourIntro` 인터페이스 (운영 정보)
-  - [ ] `TourImage` 인터페이스 (이미지)
-  - [ ] `AreaCode` 인터페이스 (지역 코드)
-  - [ ] `ContentType` 타입 (관광 타입)
+- [x] `lib/types/tour.ts` 생성
+  - [x] `TourItem` 인터페이스 (관광지 목록)
+  - [x] `TourDetail` 인터페이스 (상세 정보)
+  - [x] `TourIntro` 인터페이스 (운영 정보)
+  - [x] `TourImage` 인터페이스 (이미지)
+  - [x] `AreaCode` 인터페이스 (지역 코드)
+  - [x] `ContentType` 타입 (관광 타입)
 
 ### 1.4 API 클라이언트 구현
 - [ ] `lib/api/tour-api.ts` 생성
