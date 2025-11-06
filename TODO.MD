@@ -20,9 +20,9 @@
 - [ ] 한국관광공사 API 키 발급
   - [ ] `NEXT_PUBLIC_TOUR_API_KEY` 설정
   - [ ] `TOUR_API_KEY` 설정 (백업)
-- [ ] 네이버 지도 API 키 발급
-  - [ ] `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID` 설정
-  - [ ] 네이버 클라우드 플랫폼 Web Dynamic Map 서비스 활성화
+- [ ] 구글 지도 API 키 발급
+  - [ ] `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` 설정
+  - [ ] Google Cloud Console에서 Maps JavaScript API 활성화
 - [x] Clerk 환경 변수 설정
 - [x] Supabase 환경 변수 설정
 
@@ -111,12 +111,13 @@
   - [ ] 무한 스크롤
 - [ ] 페이지당 항목 수 설정
 
-### 2.7 네이버 지도 연동 (MVP 2.2)
-- [ ] `components/naver-map.tsx` 생성
-  - [ ] Naver Maps API v3 스크립트 로드
+### 2.7 구글 지도 연동 (MVP 2.2)
+- [ ] `components/google-map.tsx` 생성
+  - [ ] Google Maps JavaScript API 로드 (`@googlemaps/js-api-loader` 패키지 설치)
   - [ ] 기본 지도 표시
   - [ ] 지역별 중심 좌표 설정
   - [ ] 줌 레벨 자동 조정
+  - [ ] 좌표 변환 (KATEC → WGS84: `mapy / 10000000`, `mapx / 10000000`)
 - [ ] 마커 기능
   - [ ] 관광지 마커 표시
   - [ ] 마커 클릭 시 인포윈도우
@@ -127,7 +128,7 @@
   - [ ] 리스트 항목 호버 → 마커 강조 (선택 사항)
 - [ ] 지도 컨트롤
   - [ ] 줌 인/아웃
-  - [ ] 지도 유형 선택
+  - [ ] 지도 유형 선택 (일반/위성)
   - [ ] 현재 위치로 이동 (선택 사항)
 - [ ] 반응형 레이아웃
   - [ ] 데스크톱: 리스트(좌) + 지도(우) 분할
@@ -179,11 +180,11 @@
 
 ### 3.5 지도 섹션 (MVP 2.4.4)
 - [ ] `components/tour-detail/detail-map.tsx` 생성
-  - [ ] 네이버 지도 표시
+  - [ ] 구글 지도 표시
   - [ ] 해당 관광지 마커 1개
   - [ ] "길찾기" 버튼
-    - [ ] 네이버 지도 앱/웹 연동
-    - [ ] 좌표 전달
+    - [ ] Google Maps 연동 (새 탭으로 길찾기)
+    - [ ] 좌표 전달 (`https://www.google.com/maps/dir/?api=1&destination={lat},{lng}`)
   - [ ] 좌표 정보 표시 (선택 사항)
 
 ### 3.6 공유하기 기능 (MVP 2.4.5)
@@ -322,7 +323,7 @@
 - [x] Vercel 프로젝트 연결
 - [ ] Vercel 환경 변수 설정
   - [ ] 한국관광공사 API 키
-  - [ ] 네이버 지도 API 키
+  - [ ] 구글 지도 API 키
   - [ ] Clerk 키
   - [ ] Supabase 키
 - [ ] 프로덕션 배포
@@ -374,11 +375,11 @@
 
 ### API 키 발급
 - 한국관광공사: https://www.data.go.kr/data/15101578/openapi.do
-- 네이버 클라우드 플랫폼: https://console.ncloud.com/naver-service/application
+- Google Cloud Platform: https://console.cloud.google.com/
 
 ### 기술 문서
 - Next.js: https://nextjs.org/docs
-- Naver Maps API v3: https://navermaps.github.io/maps.js.ncp/docs/
+- Google Maps JavaScript API: https://developers.google.com/maps/documentation/javascript
 - Tailwind CSS: https://tailwindcss.com/docs
 - shadcn/ui: https://ui.shadcn.com/
 - Supabase: https://supabase.com/docs
