@@ -58,8 +58,11 @@ function getApiKey(): string {
  * @see PRD.md 4.3 공통 파라미터
  */
 function createCommonParams(): Record<string, string> {
+  // API 키를 URL 인코딩 (이미 인코딩된 키는 그대로 사용)
+  const apiKey = getApiKey();
+  
   return {
-    serviceKey: getApiKey(),
+    serviceKey: apiKey,
     MobileOS: "ETC",
     MobileApp: "MyTrip",
     _type: "json",
@@ -108,23 +111,33 @@ async function fetchTourApi<T>(
     const url = `${BASE_URL}${endpoint}?${searchParams.toString()}`;
     console.log("요청 URL:", url.replace(getApiKey(), "***"));
 
-    // API 호출
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-      // Next.js에서 revalidate 설정 (선택사항)
-      next: { revalidate: 3600 }, // 1시간 캐시
-    });
+    // 타임아웃 설정 (30초)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    if (!response.ok) {
-      throw new Error(
-        `API 호출 실패: ${response.status} ${response.statusText}`
-      );
-    }
+    try {
+      // API 호출
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "MyTrip/1.0",
+        },
+        signal: controller.signal,
+        // 개발 중에는 캐싱 비활성화
+        cache: "no-store",
+      });
 
-    const data: TourApiResponse<T> = await response.json();
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "응답 본문을 읽을 수 없습니다.");
+        throw new Error(
+          `API 호출 실패: ${response.status} ${response.statusText}\n응답: ${errorText.substring(0, 200)}`
+        );
+      }
+
+      const data: TourApiResponse<T> = await response.json();
 
     // API 응답 코드 확인
     if (data.response.header.resultCode !== "0000") {
@@ -133,15 +146,48 @@ async function fetchTourApi<T>(
       );
     }
 
-    console.log("응답 성공:", {
-      resultCode: data.response.header.resultCode,
-      totalCount: data.response.body.totalCount,
-    });
-    console.groupEnd();
+      console.log("응답 성공:", {
+        resultCode: data.response.header.resultCode,
+        totalCount: data.response.body.totalCount,
+      });
+      console.groupEnd();
 
-    return data;
+      return data;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      // AbortError인 경우 타임아웃 에러로 처리
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        const timeoutError = new Error("API 요청 시간이 초과되었습니다. 네트워크 연결을 확인해주세요.");
+        console.error(`❌ API 호출 타임아웃 (${endpoint}):`, timeoutError);
+        console.groupEnd();
+        throw timeoutError;
+      }
+      
+      // 네트워크 에러인 경우
+      if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
+        const networkError = new Error("네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.");
+        console.error(`❌ 네트워크 오류 (${endpoint}):`, networkError);
+        console.error("원본 에러:", fetchError);
+        console.groupEnd();
+        throw networkError;
+      }
+      
+      // 기타 에러는 그대로 전달
+      throw fetchError;
+    }
   } catch (error) {
     console.error(`❌ API 호출 오류 (${endpoint}):`, error);
+    
+    // 더 자세한 에러 정보 로깅
+    if (error instanceof Error) {
+      console.error("에러 이름:", error.name);
+      console.error("에러 메시지:", error.message);
+      if (error.stack) {
+        console.error("에러 스택:", error.stack);
+      }
+    }
+    
     console.groupEnd();
     throw error;
   }
@@ -177,10 +223,24 @@ export async function getAreaCodes(params?: {
 }
 
 /**
+ * 지역 기반 관광지 조회 결과
+ */
+export interface AreaBasedListResult {
+  /** 관광지 목록 */
+  items: TourItem[];
+  /** 총 개수 */
+  totalCount: number;
+  /** 현재 페이지 번호 */
+  pageNo: number;
+  /** 페이지당 개수 */
+  numOfRows: number;
+}
+
+/**
  * 지역 기반 관광지 조회
  *
  * @param params - 필수 파라미터
- * @returns 관광지 목록
+ * @returns 관광지 목록 및 페이지네이션 정보
  *
  * @see PRD.md 4.1 사용 API 목록 - areaBasedList2
  */
@@ -189,22 +249,39 @@ export async function getAreaBasedList(params: {
   contentTypeId?: ContentType;
   numOfRows?: number;
   pageNo?: number;
-}): Promise<TourItem[]> {
+}): Promise<AreaBasedListResult> {
   const response = await fetchTourApi<TourItem>("/areaBasedList2", params);
 
   const items = response.response.body.items?.item;
-  if (!items) {
-    return [];
-  }
+  const normalizedItems = items ? normalizeItem(items) : [];
 
-  return normalizeItem(items);
+  return {
+    items: normalizedItems,
+    totalCount: response.response.body.totalCount || 0,
+    pageNo: response.response.body.pageNo || 1,
+    numOfRows: response.response.body.numOfRows || 20,
+  };
+}
+
+/**
+ * 키워드 검색 결과
+ */
+export interface SearchKeywordResult {
+  /** 관광지 목록 */
+  items: TourItem[];
+  /** 총 개수 */
+  totalCount: number;
+  /** 현재 페이지 번호 */
+  pageNo: number;
+  /** 페이지당 개수 */
+  numOfRows: number;
 }
 
 /**
  * 키워드 검색
  *
  * @param params - 검색 파라미터
- * @returns 검색 결과 관광지 목록
+ * @returns 검색 결과 관광지 목록 및 페이지네이션 정보
  *
  * @see PRD.md 4.1 사용 API 목록 - searchKeyword2
  */
@@ -214,7 +291,7 @@ export async function searchKeyword(params: {
   contentTypeId?: ContentType;
   numOfRows?: number;
   pageNo?: number;
-}): Promise<TourItem[]> {
+}): Promise<SearchKeywordResult> {
   if (!params.keyword || params.keyword.trim() === "") {
     throw new Error("검색 키워드는 필수입니다.");
   }
@@ -222,11 +299,14 @@ export async function searchKeyword(params: {
   const response = await fetchTourApi<TourItem>("/searchKeyword2", params);
 
   const items = response.response.body.items?.item;
-  if (!items) {
-    return [];
-  }
+  const normalizedItems = items ? normalizeItem(items) : [];
 
-  return normalizeItem(items);
+  return {
+    items: normalizedItems,
+    totalCount: response.response.body.totalCount || 0,
+    pageNo: response.response.body.pageNo || 1,
+    numOfRows: response.response.body.numOfRows || 20,
+  };
 }
 
 /**

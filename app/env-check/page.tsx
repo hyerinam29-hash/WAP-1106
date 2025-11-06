@@ -36,6 +36,16 @@ export default function EnvCheckPage() {
                 <span className="text-red-600">❌ 미설정</span>
               )}
             </div>
+            {envStatus.tourApi.nextPublic && (
+              <div className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded">
+                키 길이: {process.env.NEXT_PUBLIC_TOUR_API_KEY?.length || 0}자
+                {process.env.NEXT_PUBLIC_TOUR_API_KEY && (
+                  <span className="block mt-1">
+                    시작: {process.env.NEXT_PUBLIC_TOUR_API_KEY.substring(0, 10)}...
+                  </span>
+                )}
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-sm font-mono">TOUR_API_KEY (백업)</span>
               {envStatus.tourApi.backup ? (
@@ -44,7 +54,17 @@ export default function EnvCheckPage() {
                 <span className="text-yellow-600">⚠️ 미설정 (선택사항)</span>
               )}
             </div>
-            {!envStatus.tourApi.allSet && (
+            {envStatus.tourApi.allSet ? (
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+                <p className="text-sm text-green-800">
+                  ✅ <strong>API 키가 설정되어 있습니다.</strong>
+                  <br />
+                  <span className="text-xs mt-1 block">
+                    만약 "Failed to fetch" 에러가 발생한다면, 네트워크 연결이나 API 서버 상태를 확인해주세요.
+                  </span>
+                </p>
+              </div>
+            ) : (
               <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
                 <p className="text-sm text-yellow-800">
                   <strong>설정 방법:</strong> 한국관광공사 공공 API에서 API 키를 발급받아 .env 파일에 추가하세요.
