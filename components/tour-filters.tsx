@@ -27,7 +27,7 @@ import { useEffect, useState } from "react";
 import { X, MapPin, Tag } from "lucide-react";
 import type { AreaCode, ContentType } from "@/lib/types/tour";
 import { CONTENT_TYPE_NAMES } from "@/lib/types/tour";
-import { getAreaCodes } from "@/lib/api/tour-api";
+import { getAreaCodes } from "@/lib/api/tour-api-client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

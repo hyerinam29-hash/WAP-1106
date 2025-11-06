@@ -220,25 +220,25 @@ Phase 1의 기반 위에 홈페이지 기능을 구현합니다.
   - [x] 관광 타입 및 카테고리
 
 ### 3.3 운영 정보 섹션 (MVP 2.4.2)
-- [ ] `components/tour-detail/detail-intro.tsx` 생성
-  - [ ] `detailIntro2` API 연동
-  - [ ] 운영시간/개장시간
-  - [ ] 휴무일
-  - [ ] 이용요금
-  - [ ] 주차 가능 여부
-  - [ ] 수용인원
-  - [ ] 체험 프로그램
-  - [ ] 유모차/반려동물 동반 가능 여부
-  - [ ] 정보 없는 항목 숨김 처리
+- [x] `components/tour-detail/detail-intro.tsx` 생성
+  - [x] `detailIntro2` API 연동
+  - [x] 운영시간/개장시간
+  - [x] 휴무일
+  - [x] 이용요금
+  - [x] 주차 가능 여부
+  - [x] 수용인원
+  - [x] 체험 프로그램
+  - [x] 유모차/반려동물 동반 가능 여부
+  - [x] 정보 없는 항목 숨김 처리
 
 ### 3.4 이미지 갤러리 (MVP 2.4.3)
-- [ ] `components/tour-detail/detail-gallery.tsx` 생성
-  - [ ] `detailImage2` API 연동
-  - [ ] 이미지 슬라이더/캐러셀
-  - [ ] 이미지 클릭 시 전체화면 모달
-  - [ ] 좌우 네비게이션
-  - [ ] 썸네일 표시
-  - [ ] 이미지 없을 때 기본 이미지
+- [x] `components/tour-detail/detail-gallery.tsx` 생성
+  - [x] `detailImage2` API 연동
+  - [x] 이미지 슬라이더/캐러셀
+  - [x] 이미지 클릭 시 전체화면 모달
+  - [x] 좌우 네비게이션
+  - [x] 썸네일 표시
+  - [x] 이미지 없을 때 기본 이미지
 
 ### 3.5 지도 섹션 (MVP 2.4.4)
 - [ ] `components/tour-detail/detail-map.tsx` 생성

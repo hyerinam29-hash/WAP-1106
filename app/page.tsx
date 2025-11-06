@@ -16,7 +16,7 @@
  * - components/tour-list: TourList
  * - components/tour-filters: TourFilters
  * - components/tour-search: TourSearch
- * - lib/api/tour-api: getAreaBasedList, searchKeyword
+ * - lib/api/tour-api-client: getAreaBasedList, searchKeyword (클라이언트용, API Route 호출)
  * - lib/types/tour: TourItem, TourFilters
  *
  * @see PRD.md Phase 2: 홈페이지 (`/`) - 관광지 목록
@@ -30,7 +30,7 @@ import { TourList } from "@/components/tour-list";
 import { TourFilters, type TourFilters as TourFiltersType } from "@/components/tour-filters";
 import { TourSearch } from "@/components/tour-search";
 import { Pagination } from "@/components/ui/pagination";
-import { getAreaBasedList, searchKeyword } from "@/lib/api/tour-api";
+import { getAreaBasedList, searchKeyword } from "@/lib/api/tour-api-client";
 import type { TourItem } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
 

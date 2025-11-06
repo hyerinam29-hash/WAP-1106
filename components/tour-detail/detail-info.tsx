@@ -28,6 +28,7 @@
 import Image from "next/image";
 import { Copy, Phone, ExternalLink, MapPin, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/tour-detail/share-button";
 import type { TourDetail } from "@/lib/types/tour";
 import { CONTENT_TYPE_NAMES } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,8 @@ import { cn } from "@/lib/utils";
 interface DetailInfoProps {
   /** 관광지 상세 정보 */
   tour: TourDetail;
+  /** 공유할 URL (선택 사항, 없으면 현재 페이지 URL 사용) */
+  shareUrl?: string;
   /** 추가 클래스명 */
   className?: string;
 }
@@ -50,7 +53,7 @@ interface DetailInfoProps {
  * <DetailInfo tour={tourDetail} />
  * ```
  */
-export function DetailInfo({ tour, className }: DetailInfoProps) {
+export function DetailInfo({ tour, shareUrl, className }: DetailInfoProps) {
   console.group("📋 DetailInfo 렌더링");
   console.log("관광지:", {
     contentId: tour.contentid,
@@ -70,6 +73,9 @@ export function DetailInfo({ tour, className }: DetailInfoProps) {
 
   // 관광 타입 이름
   const contentTypeName = CONTENT_TYPE_NAMES[tour.contenttypeid] || "관광지";
+
+  // 공유 URL (props로 받거나 현재 페이지 URL 사용)
+  const urlToShare = shareUrl || (typeof window !== "undefined" ? window.location.href : "");
 
   /**
    * 주소 복사 핸들러
@@ -102,7 +108,16 @@ export function DetailInfo({ tour, className }: DetailInfoProps) {
     <div className={cn("space-y-8", className)}>
       {/* 관광지명 및 타입 */}
       <div>
-        <h1 className="mb-2 text-3xl font-bold lg:text-4xl">{tour.title}</h1>
+        <div className="mb-2 flex items-start justify-between gap-4">
+          <h1 className="flex-1 text-3xl font-bold lg:text-4xl">{tour.title}</h1>
+          {/* 공유하기 버튼 */}
+          <ShareButton
+            url={urlToShare}
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+          />
+        </div>
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             {contentTypeName}
