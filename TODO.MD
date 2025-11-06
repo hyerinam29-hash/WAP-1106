@@ -40,16 +40,16 @@
   - [x] `ContentType` 타입 (관광 타입)
 
 ### 1.4 API 클라이언트 구현
-- [ ] `lib/api/tour-api.ts` 생성
-  - [ ] Base URL 설정
-  - [ ] 공통 파라미터 헬퍼
-  - [ ] `getAreaCodes()` - 지역코드 조회
-  - [ ] `getAreaBasedList()` - 지역 기반 관광지 조회
-  - [ ] `searchKeyword()` - 키워드 검색
-  - [ ] `getDetailCommon()` - 공통 정보 조회
-  - [ ] `getDetailIntro()` - 소개 정보 조회
-  - [ ] `getDetailImage()` - 이미지 조회
-  - [ ] 에러 핸들링 추가
+- [x] `lib/api/tour-api.ts` 생성
+  - [x] Base URL 설정
+  - [x] 공통 파라미터 헬퍼
+  - [x] `getAreaCodes()` - 지역코드 조회
+  - [x] `getAreaBasedList()` - 지역 기반 관광지 조회
+  - [x] `searchKeyword()` - 키워드 검색
+  - [x] `getDetailCommon()` - 공통 정보 조회
+  - [x] `getDetailIntro()` - 소개 정보 조회
+  - [x] `getDetailImage()` - 이미지 조회
+  - [x] 에러 핸들링 추가
 
 ### 1.5 공통 컴포넌트
 - [ ] `components/ui/loading.tsx` - 로딩 스피너
