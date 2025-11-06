@@ -163,7 +163,7 @@ export function TourSearch({
           {resultCount > 0 ? (
             <span>검색 결과: <strong className="text-foreground">{resultCount}</strong>개</span>
           ) : keyword ? (
-            <span>"<strong className="text-foreground">{keyword}</strong>"에 대한 결과가 없습니다.</span>
+            <span>&quot;<strong className="text-foreground">{keyword}</strong>&quot;에 대한 결과가 없습니다.</span>
           ) : null}
         </div>
       )}

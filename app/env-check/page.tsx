@@ -60,7 +60,7 @@ export default function EnvCheckPage() {
                   ✅ <strong>API 키가 설정되어 있습니다.</strong>
                   <br />
                   <span className="text-xs mt-1 block">
-                    만약 "Failed to fetch" 에러가 발생한다면, 네트워크 연결이나 API 서버 상태를 확인해주세요.
+                    만약 &quot;Failed to fetch&quot; 에러가 발생한다면, 네트워크 연결이나 API 서버 상태를 확인해주세요.
                   </span>
                 </p>
               </div>

@@ -24,7 +24,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -65,18 +65,18 @@ export function DetailGallery({
   console.group("🖼️ DetailGallery 렌더링");
   console.log("이미지 개수:", images.length);
 
+  // 상태 관리 (hooks는 항상 최상단에 위치)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalIndex, setModalIndex] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+
   // 이미지가 없으면 null 반환
   if (!images || images.length === 0) {
     console.log("⚠️ 이미지가 없습니다.");
     console.groupEnd();
     return null;
   }
-
-  // 상태 관리
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalIndex, setModalIndex] = useState(0);
-  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
   // 이미지 URL이 있는 이미지만 필터링 및 정리
   const validImages = images
@@ -205,7 +205,7 @@ export function DetailGallery({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isModalOpen, modalIndex, validImages.length]);
+  }, [isModalOpen, modalIndex, validImages.length, handleModalNext, handleModalPrev]);
 
   // 현재 이미지
   const currentImage = validImages[currentIndex];

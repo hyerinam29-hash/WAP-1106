@@ -77,7 +77,7 @@ export function Pagination({
     const half = Math.floor(maxVisiblePages / 2);
 
     let start = Math.max(1, currentPage - half);
-    let end = Math.min(totalPages, start + maxVisiblePages - 1);
+    const end = Math.min(totalPages, start + maxVisiblePages - 1);
 
     // 끝에서 시작점 조정
     if (end - start < maxVisiblePages - 1) {
