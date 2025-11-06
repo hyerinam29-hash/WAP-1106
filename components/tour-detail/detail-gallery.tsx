@@ -234,91 +234,12 @@ export function DetailGallery({
   };
 
   /**
-   * 모달에서 다음 이미지로 이동
-   */
-  const handleModalNext = () => {
-    const next = (modalIndex + 1) % validImages.length;
-    console.log("➡️ 모달에서 다음 이미지로 이동:", {
-      from: modalIndex,
-      to: next,
-      total: validImages.length,
-    });
-    setModalIndex(next);
-  };
-
-  /**
-   * 모달에서 이전 이미지로 이동
-   */
-  const handleModalPrev = () => {
-    const next = (modalIndex - 1 + validImages.length) % validImages.length;
-    console.log("⬅️ 모달에서 이전 이미지로 이동:", {
-      from: modalIndex,
-      to: next,
-      total: validImages.length,
-    });
-    setModalIndex(next);
-  };
-
-  /**
    * 이미지 로드 에러 핸들러
    */
   const handleImageError = (index: number, type: "main" | "thumbnail") => {
     console.error(`❌ 이미지 로드 실패 (${type}):`, index);
     setImageErrors((prev) => new Set(prev).add(index));
   };
-
-  /**
-   * 키보드 네비게이션 (모달 열려있을 때)
-   */
-  useEffect(() => {
-    if (!isModalOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        handleModalPrev();
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        handleModalNext();
-      } else if (e.key === "Escape") {
-        console.log("🔙 ESC 키로 모달 닫기");
-        setIsModalOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isModalOpen, modalIndex, validImages.length, handleModalNext, handleModalPrev]);
-
-  // 현재 이미지
-  const currentImage = validImages[currentIndex];
-  const hasError = imageErrors.has(currentIndex);
-
-  /**
-   * currentIndex 변경 추적
-   */
-  useEffect(() => {
-    if (validImages.length > 0 && currentImage) {
-      console.log("🔄 메인 이미지 변경:", {
-        index: currentIndex,
-        imageUrl: currentImage.mainUrl,
-        imageName: currentImage.imgname,
-      });
-    }
-  }, [currentIndex, validImages, currentImage]);
-
-  /**
-   * modalIndex 변경 추적
-   */
-  useEffect(() => {
-    if (isModalOpen && validImages.length > 0 && validImages[modalIndex]) {
-      console.log("🔄 모달 이미지 변경:", {
-        index: modalIndex,
-        imageUrl: validImages[modalIndex].mainUrl,
-        imageName: validImages[modalIndex].imgname,
-      });
-    }
-  }, [modalIndex, isModalOpen, validImages]);
 
   return (
     <>
