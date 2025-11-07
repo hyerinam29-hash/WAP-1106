@@ -33,6 +33,7 @@ import { DetailGallery } from "@/components/tour-detail/detail-gallery";
 import { getDetailCommon, getDetailIntro, getDetailImage } from "@/lib/api/tour-api";
 import type { TourDetail, TourIntro, TourImage } from "@/lib/types/tour";
 import type { Metadata } from "next";
+import DetailMap from "@/components/tour-detail/detail-map";
 
 /**
  * 상세페이지 Props
@@ -246,12 +247,27 @@ export default async function DetailPage({ params }: DetailPageProps) {
         {/* 이미지 갤러리 섹션 */}
         <DetailGallery images={tourImages} title={tourDetail.title} />
 
-        {/* 지도 섹션 (추후 구현) */}
+        {/* 지도 섹션 */}
         <section className="rounded-lg border bg-card p-6">
           <h2 className="mb-4 text-xl font-semibold">위치 정보</h2>
-          <p className="text-sm text-muted-foreground">
-            지도 섹션이 여기에 표시됩니다. (3.5에서 구현 예정)
-          </p>
+          {(() => {
+            const lng = parseFloat(tourDetail!.mapx) / 10000000;
+            const lat = parseFloat(tourDetail!.mapy) / 10000000;
+            const isValid =
+              Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0;
+
+            if (!isValid) {
+              return (
+                <p className="text-sm text-muted-foreground">
+                  좌표 정보가 없어 지도를 표시할 수 없습니다.
+                </p>
+              );
+            }
+
+            return (
+              <DetailMap lat={lat} lng={lng} title={tourDetail!.title} />
+            );
+          })()}
         </section>
       </div>
     </div>

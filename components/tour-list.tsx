@@ -60,6 +60,10 @@ interface TourListProps {
   sortBy?: SortOption;
   /** 추가 클래스명 */
   className?: string;
+  /** 카드 클릭 핸들러 (지도 연동용) */
+  onCardClick?: (tourId: string) => void;
+  /** 선택된 관광지 ID */
+  selectedTourId?: string;
 }
 
 /**
@@ -112,6 +116,8 @@ export function TourList({
   columns = 3,
   sortBy = "latest",
   className,
+  onCardClick,
+  selectedTourId,
 }: TourListProps) {
   console.group("📋 TourList 렌더링");
   console.log("상태:", {
@@ -200,7 +206,12 @@ export function TourList({
       </div>
 
       {/* 관광지 카드 리스트 */}
-      <TourCardList tours={sortedTours} columns={columns} />
+      <TourCardList
+        tours={sortedTours}
+        columns={columns}
+        onCardClick={onCardClick}
+        selectedTourId={selectedTourId}
+      />
     </div>
   );
 }

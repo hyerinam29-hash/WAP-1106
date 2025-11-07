@@ -37,6 +37,10 @@ interface TourCardProps {
   tour: TourItem;
   /** 추가 클래스명 */
   className?: string;
+  /** 카드 클릭 핸들러 (지도 연동용) */
+  onClick?: (tourId: string) => void;
+  /** 선택된 관광지 ID (강조 표시용) */
+  selectedTourId?: string;
 }
 
 /**
@@ -47,7 +51,7 @@ interface TourCardProps {
  * <TourCard tour={tourItem} />
  * ```
  */
-export function TourCard({ tour, className }: TourCardProps) {
+export function TourCard({ tour, className, onClick, selectedTourId }: TourCardProps) {
   // 이미지 URL (firstimage 우선, 없으면 firstimage2, 둘 다 없으면 placeholder)
   const imageUrl = tour.firstimage || tour.firstimage2 || null;
   
@@ -66,14 +70,26 @@ export function TourCard({ tour, className }: TourCardProps) {
     hasImage: !!imageUrl,
   });
 
+  const isSelected = selectedTourId === tour.contentid;
+
+  const handleClick = (e: React.MouseEvent) => {
+    // 지도 연동을 위한 클릭 핸들러
+    if (onClick) {
+      onClick(tour.contentid);
+    }
+    // Link의 기본 동작은 유지 (상세페이지 이동)
+  };
+
   return (
     <Link
       href={detailUrl}
+      onClick={handleClick}
       className={cn(
         "group relative block rounded-xl border bg-card shadow-sm",
         "transition-all duration-300",
         "hover:shadow-xl hover:scale-[1.02]",
         "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+        isSelected && "ring-2 ring-primary ring-offset-2",
         className
       )}
       aria-label={`${tour.title} 상세보기`}
@@ -160,6 +176,10 @@ interface TourCardListProps {
   columns?: 1 | 2 | 3 | 4;
   /** 추가 클래스명 */
   className?: string;
+  /** 카드 클릭 핸들러 (지도 연동용) */
+  onCardClick?: (tourId: string) => void;
+  /** 선택된 관광지 ID */
+  selectedTourId?: string;
 }
 
 /**
@@ -170,7 +190,7 @@ interface TourCardListProps {
  * <TourCardList tours={tourItems} columns={3} />
  * ```
  */
-export function TourCardList({ tours, columns = 3, className }: TourCardListProps) {
+export function TourCardList({ tours, columns = 3, className, onCardClick, selectedTourId }: TourCardListProps) {
   console.log("📋 TourCardList 렌더링:", {
     count: tours.length,
     columns,
@@ -196,7 +216,12 @@ export function TourCardList({ tours, columns = 3, className }: TourCardListProp
       )}
     >
       {tours.map((tour) => (
-        <TourCard key={tour.contentid} tour={tour} />
+        <TourCard
+          key={tour.contentid}
+          tour={tour}
+          onClick={onCardClick}
+          selectedTourId={selectedTourId}
+        />
       ))}
     </div>
   );

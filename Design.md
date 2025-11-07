@@ -745,7 +745,7 @@ Static Assets:
 - Visit Korea (korean.visitkorea.or.kr)
 - Airbnb (지도 + 리스트 레이아웃)
 - Booking.com (필터 시스템)
-- Google Maps (인터랙티브 지도)
+- 네이버 지도 (인터랙티브 지도)
 
 ### UI 컴포넌트 라이브러리
 - shadcn/ui: https://ui.shadcn.com/

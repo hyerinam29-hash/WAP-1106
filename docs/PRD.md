@@ -81,11 +81,11 @@
 
 ---
 
-### 2.2 구글 지도 연동
+### 2.2 네이버 지도 연동
 
 #### 기능 설명
 
-관광지 목록의 위치를 구글 지도에 마커로 표시하고, 사용자 인터랙션 제공
+관광지 목록의 위치를 네이버 지도에 마커로 표시하고, 사용자 인터랙션 제공
 
 #### 상세 요구사항
 
@@ -116,13 +116,13 @@
 
 #### 기술 요구사항
 
-- **Google Maps JavaScript API** 사용
-  - `@googlemaps/js-api-loader` 패키지 사용 권장
-  - API 키 필요 (Google Cloud Console에서 발급)
-  - Maps JavaScript API 활성화 필요
+- **네이버 지도 API** 사용
+  - 스크립트 태그로 로드 (`https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=YOUR_CLIENT_ID`)
+  - Client ID 필요 (네이버 클라우드 플랫폼에서 발급)
+  - Maps API 서비스 활성화 필요
 - **좌표 데이터**: `mapx` (경도), `mapy` (위도)
   - WGS84 좌표계로 변환 필요 → `mapy / 10000000`, `mapx / 10000000`
-  - Google Maps는 표준 위도(lat)/경도(lng) 사용
+  - 네이버 지도는 표준 위도(lat)/경도(lng) 사용
 
 #### UI 요구사항
 
@@ -301,7 +301,7 @@
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui
 - **Icons**: lucide-react
-- **Maps**: Google Maps JavaScript API
+- **Maps**: 네이버 지도 API
 
 ### 3.2 Authentication
 
@@ -505,12 +505,12 @@ lib/
 - **데이터 품질**: 일부 관광지는 이미지/정보 누락 가능
 - **응답 속도**: API 응답 시간 고려 (캐싱 전략 필요)
 
-### 8.2 구글 지도 제약사항
+### 8.2 네이버 지도 제약사항
 
-- 월 $200 무료 크레딧 제공 (Google Cloud Platform)
-- API 키 필요 (Google Cloud Console에서 발급)
-- Maps JavaScript API 활성화 필요
-- 결제 정보 등록 필수 (무료 크레딧 범위 내 사용 가능)
+- 무료 사용량 제공 (네이버 클라우드 플랫폼)
+- Client ID 필요 (네이버 클라우드 플랫폼에서 발급)
+- Maps API 서비스 활성화 필요
+- 일일 호출 제한 확인 필요
 
 ### 8.3 DB 고려사항
 
@@ -531,8 +531,8 @@ NEXT_PUBLIC_TOUR_API_KEY=your_tour_api_key
 # 한국 관광공사 에러가 난다면? NEXT_PUBLIC_TOUR_API_KEY 가 인식안될때?
 TOUR_API_KEY=your_tour_api_key
 
-# 구글 지도
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+# 네이버 지도
+NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=your_naver_map_client_id
 
 # Clerk Authentication
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
