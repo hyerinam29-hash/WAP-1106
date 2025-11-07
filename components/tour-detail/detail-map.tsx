@@ -85,6 +85,8 @@ declare global {
         };
       };
     };
+    // 공식 문서 제공 인증 실패 훅
+    navermap_authFailure?: () => void;
   }
 }
 
@@ -222,7 +224,7 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
     }
 
     // 스크립트 로드 대기 중인 경우
-    const existingScript = document.querySelector(`script[src*="openapi.map.naver.com"]`);
+    const existingScript = document.querySelector(`script[src*="oapi.map.naver.com"]`);
     if (existingScript) {
       console.log("⏳ 스크립트 로드 대기 중...");
       const poll = setInterval(() => {
@@ -255,10 +257,17 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
       return;
     }
 
-    // 스크립트 동적 로드
+    // 스크립트 동적 로드 (oapi + ncpKeyId)
     const script = document.createElement("script");
-    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
     script.async = true;
+
+    // 인증 실패 콜백 등록
+    window.navermap_authFailure = () => {
+      console.error("❌ navermap_authFailure (DetailMap)");
+      setError(new Error("네이버 지도 API 인증 실패 (DetailMap). 도메인/Key 설정을 확인하세요."));
+      setIsLoading(false);
+    };
     
     script.onload = () => {
       console.log("✅ 네이버 지도 스크립트 로드 완료");

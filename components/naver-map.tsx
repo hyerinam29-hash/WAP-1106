@@ -24,6 +24,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+// 공식 문서: https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Getting-Started.html
+// v3 로드 방식: oapi.map.naver.com + ncpKeyId
 import Link from "next/link";
 import { ZoomIn, ZoomOut, Map, Satellite } from "lucide-react";
 import type { TourItem } from "@/lib/types/tour";
@@ -202,7 +204,7 @@ export function NaverMap({
 
     // 이미 스크립트가 로드 중인지 확인
     const existingScript = document.querySelector(
-      `script[src*="openapi.map.naver.com"]`
+      `script[src*="oapi.map.naver.com"]`
     );
     if (existingScript) {
       console.log("⏳ 네이버 지도 API 스크립트 로드 중...");
@@ -232,10 +234,10 @@ export function NaverMap({
       return;
     }
 
-    // 스크립트 동적 로드
+    // 스크립트 동적 로드 (oapi + ncpKeyId)
     const script = document.createElement("script");
-    // 네이버 지도 API v3 올바른 엔드포인트 사용
-    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
+    // 공식 문서 기준 엔드포인트 및 파라미터
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
     script.async = true;
     
     console.log("📡 스크립트 로드 URL:", script.src);
@@ -244,6 +246,17 @@ export function NaverMap({
     console.log("2. 등록된 도메인에", window.location.origin, "포함되어 있는지");
     console.log("3. Maps API 서비스가 활성화되어 있는지");
     
+    // 인증 실패 콜백 (공식 문서 제공 훅)
+    (window as any).navermap_authFailure = () => {
+      console.error("❌ navermap_authFailure: 인증 실패 감지 (NCP Key/도메인 설정 확인)");
+      setError(
+        new Error(
+          `네이버 지도 API 인증 실패 (navermap_authFailure)\n\n확인 사항:\n- Client ID: ${clientId}\n- 서비스 URL에 ${typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"} 등록\n- Maps API 서비스 활성화`
+        )
+      );
+      setIsLoading(false);
+    };
+
     script.onload = () => {
       console.log("✅ 네이버 지도 API 스크립트 로드 완료");
       console.log("스크립트 URL:", script.src);
