@@ -68,10 +68,10 @@ export default function DebugMapPage() {
     });
 
     // 3. 스크립트 로드 테스트
-    const scriptUrl = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
+    const scriptUrl = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
     
     // 기존 스크립트 제거
-    const existingScripts = document.querySelectorAll('script[src*="openapi.map.naver.com"]');
+    const existingScripts = document.querySelectorAll('script[src*="oapi.map.naver.com"]');
     existingScripts.forEach(script => script.remove());
     
     const script = document.createElement("script");

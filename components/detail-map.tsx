@@ -3,8 +3,8 @@
 /**
  * @file components/detail-map.tsx
  * @description 상세 페이지 전용 네이버 지도 컴포넌트 (단일 위치 표시)
- * - 스크립트 동적 로드: https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=...
- * - JS v3에서는 ncpKeyId가 아니라 ncpClientId를 사용합니다.
+ * - 스크립트 동적 로드: https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=...
+ * - 네이버 콘솔 기준: ncpKeyId 파라미터 사용
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
