@@ -239,14 +239,77 @@ export function NaverMap({
     // 공식 문서 기준 엔드포인트 및 파라미터 + callback
     (window as any).__naverMapOnLoad = () => {
       console.log("✅ NaverMap callback fired (__naverMapOnLoad)");
-      if (mapRef.current) {
+      
+      // ⭐ window.naver.maps가 준비될 때까지 대기
+      const waitForNaverMaps = () => {
+        if (!window.naver?.maps) {
+          console.warn("⏳ window.naver.maps 대기 중... (콜백은 실행되었으나 API 객체 아직 생성 중)");
+          
+          let attempts = 0;
+          const maxAttempts = 60; // 3초 (50ms * 60)
+          const checkInterval = setInterval(() => {
+            attempts++;
+            
+            if (window.naver?.maps) {
+              clearInterval(checkInterval);
+              console.log(`✅ window.naver.maps 준비 완료 (${attempts * 50}ms 후)`);
+              waitForContainer();
+            } else if (attempts >= maxAttempts) {
+              clearInterval(checkInterval);
+              console.error("❌ window.naver.maps 타임아웃 (3초) - 인증 실패 가능성");
+              setError(
+                new Error(
+                  `네이버 지도 API 인증 실패
+
+해결 방법:
+1. 네이버 클라우드 플랫폼 콘솔: https://console.ncloud.com/
+2. Client ID "${clientId}" 확인
+3. 서비스 URL에 ${window.location.origin} 등록
+4. Maps API 서비스 활성화 확인
+5. 저장 후 하드 새로고침 (Ctrl+Shift+R)`
+                )
+              );
+              setIsLoading(false);
+              console.groupEnd();
+            }
+          }, 50);
+          return;
+        }
+        
+        // 즉시 사용 가능
+        waitForContainer();
+      };
+      
+      // ⭐ 지도 컨테이너가 준비될 때까지 대기
+      const waitForContainer = () => {
+        if (!mapRef.current) {
+          console.warn("⏳ 지도 컨테이너 대기 중...");
+          
+          let attempts = 0;
+          const maxAttempts = 40; // 2초 (50ms * 40)
+          const checkContainer = setInterval(() => {
+            attempts++;
+            
+            if (mapRef.current) {
+              clearInterval(checkContainer);
+              console.log(`✅ 지도 컨테이너 준비 완료 (${attempts * 50}ms 후)`);
+              initMap();
+            } else if (attempts >= maxAttempts) {
+              clearInterval(checkContainer);
+              console.error("❌ 지도 컨테이너 타임아웃 (2초)");
+              setError(new Error("지도 컨테이너를 찾을 수 없습니다. 페이지를 새로고침해주세요."));
+              setIsLoading(false);
+              console.groupEnd();
+            }
+          }, 50);
+          return;
+        }
+        
+        // 즉시 사용 가능
         initMap();
-      } else {
-        console.warn("⏳ callback fired but container not ready; delaying init");
-        setTimeout(() => {
-          if (mapRef.current) initMap();
-        }, 100);
-      }
+      };
+      
+      waitForNaverMaps();
     };
     script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&callback=__naverMapOnLoad`;
     script.async = true;
@@ -549,7 +612,19 @@ Client ID: ${clientId}`
   const initMap = useCallback(() => {
     if (!mapRef.current) {
       console.error("❌ 지도 컨테이너가 없습니다");
-      setError(new Error("지도 컨테이너를 찾을 수 없습니다."));
+      setError(
+        new Error(
+          `지도 컨테이너를 찾을 수 없습니다.
+
+가능한 원인:
+1. React 컴포넌트가 아직 마운트되지 않음
+2. DOM 렌더링 지연
+
+해결 방법:
+- 페이지를 새로고침해주세요 (Ctrl+Shift+R)
+- 브라우저 콘솔에서 추가 에러 확인`
+        )
+      );
       setIsLoading(false);
       return;
     }
@@ -558,7 +633,20 @@ Client ID: ${clientId}`
       console.error("❌ 네이버 지도 API가 로드되지 않았습니다");
       setError(
         new Error(
-          "네이버 지도 API가 로드되지 않았습니다. 브라우저 콘솔에서 네트워크 에러를 확인해주세요."
+          `네이버 지도 API가 로드되지 않았습니다.
+
+가능한 원인:
+1. 네이버 지도 API 인증 실패 (도메인 미등록)
+2. 네트워크 연결 문제
+3. 스크립트 로드 지연
+
+해결 방법:
+1. 네이버 클라우드 플랫폼 콘솔: https://console.ncloud.com/
+2. Client ID "${clientId}" 확인
+3. 서비스 URL에 ${window.location.origin} 등록
+4. Maps API 서비스 활성화 확인
+5. 브라우저 개발자 도구(F12) → Network 탭에서 maps.js 요청 확인
+6. /debug-map 페이지에서 자동 진단 실행`
         )
       );
       setIsLoading(false);
