@@ -33,6 +33,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { getAreaBasedList, searchKeyword } from "@/lib/api/tour-api-client";
 import type { TourItem } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
+import { NaverMap } from "@/components/naver-map";
 
 /**
  * 검색 모드
@@ -271,36 +272,84 @@ export default function HomePage() {
           </div>
         </aside>
 
-        {/* 메인 영역: 목록 */}
-        <div className="lg:col-span-3 space-y-8">
-          <TourList
-            tours={tours}
-            isLoading={isLoading}
-            error={error}
-            onRetry={handleRetry}
-            emptyStateType={
-              searchMode === "search" ? "search" : 
-              searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
-              "default"
-            }
-            onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
-            keyword={keyword}
-            columns={3}
-            sortBy={sortBy}
-            onCardClick={setSelectedTourId}
-            selectedTourId={selectedTourId}
-          />
-
-          {/* 페이지네이션 */}
-          {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
-            <div className="mt-8 flex justify-center">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
+        {/* 메인 영역: 목록 + 지도 */}
+        <div className="lg:col-span-3">
+          {/* 데스크톱: 목록(2) + 지도(1) 분할 */}
+          <div className="hidden lg:grid lg:grid-cols-3 gap-8">
+            {/* 목록 영역 (2칸) */}
+            <div className="lg:col-span-2">
+              <TourList
+                tours={tours}
+                isLoading={isLoading}
+                error={error}
+                onRetry={handleRetry}
+                emptyStateType={
+                  searchMode === "search" ? "search" : 
+                  searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
+                  "default"
+                }
+                onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
+                keyword={keyword}
+                columns={3}
+                sortBy={sortBy}
+                onCardClick={setSelectedTourId}
+                selectedTourId={selectedTourId}
               />
+
+              {/* 페이지네이션 */}
+              {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
+                <div className="mt-8 flex justify-center">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
             </div>
-          )}
+
+            {/* 지도 영역 (1칸) */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-4">
+                <NaverMap
+                  tours={tours}
+                  areaCode={filters.areaCode}
+                  selectedTourId={selectedTourId}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 모바일: 목록만 표시 (지도는 데스크톱에서 표시) */}
+          <div className="lg:hidden space-y-8">
+            <TourList
+              tours={tours}
+              isLoading={isLoading}
+              error={error}
+              onRetry={handleRetry}
+              emptyStateType={
+                searchMode === "search" ? "search" : 
+                searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
+                "default"
+              }
+              onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
+              keyword={keyword}
+              columns={1}
+              sortBy={sortBy}
+              onCardClick={setSelectedTourId}
+              selectedTourId={selectedTourId}
+            />
+
+            {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
