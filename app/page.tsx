@@ -58,6 +58,10 @@ export default function HomePage() {
   const [numOfRows] = useState(20); // 페이지당 항목 수
   // 선택된 관광지 ID
   const [selectedTourId, setSelectedTourId] = useState<string | undefined>();
+  // 호버된 관광지 ID (선택 사항)
+  const [hoveredTourId, setHoveredTourId] = useState<string | undefined>();
+  // 모바일 탭 상태 (목록/지도)
+  const [mobileTab, setMobileTab] = useState<"list" | "map">("list");
 
   console.group("🏠 HomePage 렌더링");
   console.log("상태:", {
@@ -293,7 +297,9 @@ export default function HomePage() {
                 columns={3}
                 sortBy={sortBy}
                 onCardClick={setSelectedTourId}
+                onCardHover={setHoveredTourId}
                 selectedTourId={selectedTourId}
+                hoveredTourId={hoveredTourId}
               />
 
               {/* 페이지네이션 */}
@@ -315,37 +321,83 @@ export default function HomePage() {
                   tours={tours}
                   areaCode={filters.areaCode}
                   selectedTourId={selectedTourId}
+                  hoveredTourId={hoveredTourId}
                 />
               </div>
             </div>
           </div>
 
-          {/* 모바일: 목록만 표시 (지도는 데스크톱에서 표시) */}
-          <div className="lg:hidden space-y-8">
-            <TourList
-              tours={tours}
-              isLoading={isLoading}
-              error={error}
-              onRetry={handleRetry}
-              emptyStateType={
-                searchMode === "search" ? "search" : 
-                searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
-                "default"
-              }
-              onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
-              keyword={keyword}
-              columns={1}
-              sortBy={sortBy}
-              onCardClick={setSelectedTourId}
-              selectedTourId={selectedTourId}
-            />
+          {/* 모바일: 탭 형태로 목록/지도 전환 */}
+          <div className="lg:hidden space-y-4">
+            {/* 탭 버튼 */}
+            <div className="flex gap-2 border-b">
+              <button
+                onClick={() => setMobileTab("list")}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-[1px]",
+                  mobileTab === "list"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                )}
+              >
+                📋 목록
+              </button>
+              <button
+                onClick={() => setMobileTab("map")}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-[1px]",
+                  mobileTab === "map"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                )}
+              >
+                🗺️ 지도
+              </button>
+            </div>
 
-            {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
+            {/* 탭 내용 */}
+            {mobileTab === "list" ? (
+              <div className="space-y-8">
+                <TourList
+                  tours={tours}
+                  isLoading={isLoading}
+                  error={error}
+                  onRetry={handleRetry}
+                  emptyStateType={
+                    searchMode === "search" ? "search" : 
+                    searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
+                    "default"
+                  }
+                  onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
+                  keyword={keyword}
+                  columns={1}
+                  sortBy={sortBy}
+                  onCardClick={(id) => {
+                    setSelectedTourId(id);
+                    setMobileTab("map"); // 카드 클릭 시 지도 탭으로 전환
+                  }}
+                  onCardHover={setHoveredTourId}
+                  selectedTourId={selectedTourId}
+                  hoveredTourId={hoveredTourId}
+                />
+
+                {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
+                  <div className="mt-8 flex justify-center">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <NaverMap
+                  tours={tours}
+                  areaCode={filters.areaCode}
+                  selectedTourId={selectedTourId}
+                  hoveredTourId={hoveredTourId}
                 />
               </div>
             )}

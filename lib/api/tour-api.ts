@@ -12,6 +12,7 @@
  * 4. 공통 정보 조회 (detailCommon2)
  * 5. 소개 정보 조회 (detailIntro2)
  * 6. 이미지 조회 (detailImage2)
+ * 7. 반려동물 동반 정보 조회 (detailPetTour2)
  *
  * @dependencies
  * - 한국관광공사 공공 API: KorService2
@@ -27,6 +28,7 @@ import type {
   TourImage,
   AreaCode,
   ContentType,
+  PetTourInfo,
   TourApiResponse,
 } from "@/lib/types/tour";
 
@@ -393,5 +395,62 @@ export async function getDetailImage(params: {
   }
 
   return normalizeItem(items);
+}
+
+/**
+ * 반려동물 동반 정보 조회 (상세페이지 반려동물 정보)
+ *
+ * @param contentId - 콘텐츠 ID
+ * @returns 반려동물 동반 여행 정보
+ *
+ * @see PRD.md 4.1 사용 API 목록 - detailPetTour2
+ * @see PRD.md 2.5 반려동물 동반 여행
+ */
+export async function getDetailPetTour(
+  contentId: string
+): Promise<PetTourInfo | null> {
+  console.group("🐾 getDetailPetTour 호출");
+  console.log("contentId:", contentId);
+
+  if (!contentId) {
+    console.error("❌ contentId는 필수입니다.");
+    console.groupEnd();
+    throw new Error("contentId는 필수입니다.");
+  }
+
+  try {
+    const response = await fetchTourApi<PetTourInfo>("/detailPetTour2", {
+      contentId,
+    });
+
+    const items = response.response.body.items?.item;
+    if (!items) {
+      console.log("⚠️ 반려동물 정보가 없습니다.");
+      console.groupEnd();
+      return null;
+    }
+
+    const item = Array.isArray(items) ? items[0] : items;
+    
+    if (!item) {
+      console.log("⚠️ 반려동물 정보를 찾을 수 없습니다.");
+      console.groupEnd();
+      return null;
+    }
+
+    console.log("✅ 반려동물 정보 조회 성공:", {
+      contentId: item.contentid,
+      hasPetInfo: !!item.petTursmInfo,
+      hasChkpetleash: !!item.chkpetleash,
+      hasChkpetsize: !!item.chkpetsize,
+    });
+    console.groupEnd();
+
+    return item;
+  } catch (error) {
+    console.error("❌ 반려동물 정보 조회 실패:", error);
+    console.groupEnd();
+    throw error;
+  }
 }
 

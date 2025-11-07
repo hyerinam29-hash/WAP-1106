@@ -102,6 +102,18 @@ export function DetailInfo({ tour, shareUrl, className }: DetailInfoProps) {
     window.location.href = `tel:${tel}`;
   };
 
+  // 개요 텍스트 정리 함수
+  const cleanOverviewText = (text: string): string => {
+    return text
+      .replace(/<[^>]*>/g, "") // HTML 태그 제거
+      .replace(/&nbsp;/g, " ") // &nbsp;를 공백으로 변환
+      .replace(/&amp;/g, "&") // &amp;를 &로 변환
+      .replace(/&lt;/g, "<") // &lt;를 <로 변환
+      .replace(/&gt;/g, ">") // &gt;를 >로 변환
+      .replace(/&quot;/g, '"') // &quot;를 "로 변환
+      .trim();
+  };
+
   console.groupEnd();
 
   return (
@@ -218,13 +230,21 @@ export function DetailInfo({ tour, shareUrl, className }: DetailInfoProps) {
         </div>
       </div>
 
-      {/* 개요 */}
+      {/* 간단한 개요 (상세페이지에서만 표시) */}
       {tour.overview && (
         <div className="rounded-lg border bg-card p-6">
           <h2 className="mb-4 text-xl font-semibold">개요</h2>
           <div className="prose max-w-none">
-            <p className="whitespace-pre-line text-muted-foreground">
-              {tour.overview}
+            <p className="whitespace-pre-line text-muted-foreground leading-relaxed">
+              {(() => {
+                const cleanedText = cleanOverviewText(tour.overview);
+                console.log("📝 개요 텍스트 정리:", {
+                  originalLength: tour.overview.length,
+                  cleanedLength: cleanedText.length,
+                  preview: cleanedText.slice(0, 100) + "...",
+                });
+                return cleanedText;
+              })()}
             </p>
           </div>
         </div>

@@ -39,8 +39,12 @@ interface TourCardProps {
   className?: string;
   /** 카드 클릭 핸들러 (지도 연동용) */
   onClick?: (tourId: string) => void;
+  /** 카드 호버 핸들러 (지도 연동용, 선택 사항) */
+  onHover?: (tourId: string | undefined) => void;
   /** 선택된 관광지 ID (강조 표시용) */
   selectedTourId?: string;
+  /** 호버된 관광지 ID (마커 강조용, 선택 사항) */
+  hoveredTourId?: string;
 }
 
 /**
@@ -51,7 +55,7 @@ interface TourCardProps {
  * <TourCard tour={tourItem} />
  * ```
  */
-export function TourCard({ tour, className, onClick, selectedTourId }: TourCardProps) {
+export function TourCard({ tour, className, onClick, onHover, selectedTourId, hoveredTourId }: TourCardProps) {
   // 이미지 URL (firstimage 우선, 없으면 firstimage2, 둘 다 없으면 placeholder)
   const imageUrl = tour.firstimage || tour.firstimage2 || null;
   
@@ -71,6 +75,7 @@ export function TourCard({ tour, className, onClick, selectedTourId }: TourCardP
   });
 
   const isSelected = selectedTourId === tour.contentid;
+  const isHovered = hoveredTourId === tour.contentid;
 
   const handleClick = (e: React.MouseEvent) => {
     // 지도 연동을 위한 클릭 핸들러
@@ -80,16 +85,33 @@ export function TourCard({ tour, className, onClick, selectedTourId }: TourCardP
     // Link의 기본 동작은 유지 (상세페이지 이동)
   };
 
+  const handleMouseEnter = () => {
+    // 호버 시 지도 연동 (선택 사항)
+    if (onHover) {
+      onHover(tour.contentid);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // 호버 해제 시 지도 연동 해제 (선택 사항)
+    if (onHover) {
+      onHover(undefined);
+    }
+  };
+
   return (
     <Link
       href={detailUrl}
       onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className={cn(
         "group relative block rounded-xl border bg-card shadow-sm",
         "transition-all duration-300",
         "hover:shadow-xl hover:scale-[1.02]",
         "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
         isSelected && "ring-2 ring-primary ring-offset-2",
+        isHovered && "ring-2 ring-primary/50 ring-offset-2",
         className
       )}
       aria-label={`${tour.title} 상세보기`}
@@ -178,8 +200,12 @@ interface TourCardListProps {
   className?: string;
   /** 카드 클릭 핸들러 (지도 연동용) */
   onCardClick?: (tourId: string) => void;
+  /** 카드 호버 핸들러 (지도 연동용, 선택 사항) */
+  onCardHover?: (tourId: string | undefined) => void;
   /** 선택된 관광지 ID */
   selectedTourId?: string;
+  /** 호버된 관광지 ID (마커 강조용, 선택 사항) */
+  hoveredTourId?: string;
 }
 
 /**
@@ -190,7 +216,7 @@ interface TourCardListProps {
  * <TourCardList tours={tourItems} columns={3} />
  * ```
  */
-export function TourCardList({ tours, columns = 3, className, onCardClick, selectedTourId }: TourCardListProps) {
+export function TourCardList({ tours, columns = 3, className, onCardClick, onCardHover, selectedTourId, hoveredTourId }: TourCardListProps) {
   console.log("📋 TourCardList 렌더링:", {
     count: tours.length,
     columns,
@@ -220,7 +246,9 @@ export function TourCardList({ tours, columns = 3, className, onCardClick, selec
           key={tour.contentid}
           tour={tour}
           onClick={onCardClick}
+          onHover={onCardHover}
           selectedTourId={selectedTourId}
+          hoveredTourId={hoveredTourId}
         />
       ))}
     </div>

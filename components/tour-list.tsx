@@ -64,6 +64,10 @@ interface TourListProps {
   onCardClick?: (tourId: string) => void;
   /** 선택된 관광지 ID */
   selectedTourId?: string;
+  /** 카드 호버 핸들러 (지도 연동용, 선택 사항) */
+  onCardHover?: (tourId: string | undefined) => void;
+  /** 호버된 관광지 ID (선택 사항) */
+  hoveredTourId?: string;
 }
 
 /**
@@ -118,6 +122,8 @@ export function TourList({
   className,
   onCardClick,
   selectedTourId,
+  onCardHover,
+  hoveredTourId,
 }: TourListProps) {
   console.group("📋 TourList 렌더링");
   console.log("상태:", {
@@ -211,6 +217,8 @@ export function TourList({
         columns={columns}
         onCardClick={onCardClick}
         selectedTourId={selectedTourId}
+        onCardHover={onCardHover}
+        hoveredTourId={hoveredTourId}
       />
     </div>
   );

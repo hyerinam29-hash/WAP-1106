@@ -180,6 +180,81 @@ export interface AreaCode {
 }
 
 /**
+ * 반려동물 동반 여행 정보
+ * 
+ * detailPetTour2 API 응답 구조
+ * 
+ * @see PRD.md 5.4 반려동물 정보 응답 예시
+ * @see PRD.md 2.5 반려동물 동반 여행 - 데이터 구조 예시
+ */
+export interface PetTourInfo {
+  /** 콘텐츠ID */
+  contentid: string;
+  /** 콘텐츠타입ID */
+  contenttypeid?: ContentType;
+  
+  // 기본 반려동물 정보 (간단한 버전)
+  /** 애완동물 동반 여부 */
+  chkpetleash?: string;
+  /** 애완동물 크기 */
+  chkpetsize?: string;
+  /** 입장 가능 장소 */
+  chkpetplace?: string;
+  /** 추가 요금 */
+  chkpetfee?: string;
+  /** 기타 반려동물 정보 */
+  petinfo?: string;
+  /** 주차장 정보 */
+  parking?: string;
+  
+  // 상세 반려동물 정보 (detailPetTour2 API 응답)
+  /** 반려동물 동반 관광지 정보 */
+  petTursmInfo?: string;
+  /** 동반 유형 코드 */
+  acmpyTypeCd?: string;
+  /** 동반 필요 사항 */
+  acmpyNeedMtr?: string;
+  /** 동반 가능 캠핑장 */
+  acmpyPsblCpam?: string;
+  /** 관련 숙박시설명 */
+  relaAcmdtnNm?: string;
+  /** 관련 편의시설 목록 */
+  relaFrnshPrdlst?: string;
+  /** 동반 유형 기타 */
+  acmpyTypeEtc?: string;
+  /** 동반 필요 사항 기타 */
+  acmpyNeedMtrEtc?: string;
+  /** 동반 가능 캠핑장 기타 */
+  acmpyPsblCpamEtc?: string;
+  /** 관련 숙박시설명 기타 */
+  relaAcmdtnNmEtc?: string;
+  /** 관련 편의시설 목록 기타 */
+  relaFrnshPrdlstEtc?: string;
+  
+  // 파싱된 정보 (클라이언트에서 사용)
+  /** 소형견 가능 여부 */
+  smallSizeAllowed?: boolean;
+  /** 중형견 가능 여부 */
+  mediumSizeAllowed?: boolean;
+  /** 대형견 가능 여부 */
+  largeSizeAllowed?: boolean;
+  /** 실내 입장 가능 여부 */
+  indoorAllowed?: boolean;
+  /** 실외 입장 가능 여부 */
+  outdoorAllowed?: boolean;
+  /** 추가 요금 (파싱된 값) */
+  additionalFee?: string;
+  /** 주차장 정보 (반려동물 하차 공간) */
+  parkingInfo?: string;
+  /** 산책로 정보 */
+  walkingTrail?: string;
+  /** 배변 봉투 제공 여부 */
+  wasteBagProvided?: boolean;
+  /** 음수대 위치 */
+  waterStation?: string;
+}
+
+/**
  * 한국관광공사 API 공통 응답 구조
  */
 export interface TourApiResponse<T> {

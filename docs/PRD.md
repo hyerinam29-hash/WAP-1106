@@ -13,12 +13,14 @@
 - 국내 여행을 계획하는 사용자
 - 주변 관광지를 찾는 사용자
 - 특정 지역의 관광 정보가 필요한 사용자
+- 반려동물과 함께 여행하는 사용자
 
 ### 1.3 핵심 가치
 
 - **편리성**: 전국 관광지 정보를 한 곳에서 검색
 - **시각화**: 네이버 지도 연동으로 위치 기반 정보 제공
 - **상세성**: 운영시간, 요금, 이미지 등 종합 정보 제공
+- **포용성**: 반려동물 동반 여행 정보 제공으로 더 넓은 사용자층 지원
 
 ---
 
@@ -252,6 +254,25 @@
   - 정렬: 최신순, 이름순, 지역별
   - 일괄 삭제 기능
 
+##### 2.4.6 반려동물 정보 섹션
+
+- **표시 항목** (detailPetTour2)
+  - 반려동물 동반 가능 여부 표시
+  - 반려동물 크기 제한 정보 (소형, 중형, 대형)
+  - 반려동물 입장 가능 장소 (실내/실외)
+  - 반려동물 동반 추가 요금
+  - 반려동물 전용 시설 정보
+  - 주차장 정보 (반려동물 하차 공간)
+  - 산책로 정보
+  - 반려동물 배변 봉투 제공 여부
+  - 반려동물 음수대 위치
+  - 근처 동물병원 정보 (선택 사항)
+
+- **UI 요소**
+  - 반려동물 동반 가능 아이콘 (🐾)
+  - 크기별 뱃지 (소형견 가능, 대형견 가능 등)
+  - 정보 카드 형태로 섹션 구분
+
 ###### 기술 요구사항
 
 - **클립보드 API**
@@ -273,7 +294,7 @@
 - `detailCommon2`: 공통 정보
 - `detailIntro2`: 소개 정보
 - `detailImage2`: 이미지 목록
-- `detailPetTour2`: 반려동물 정보 (선택 사항)
+- `detailPetTour2`: 반려동물 동반 여행 정보
 
 #### URL 구조
 
@@ -289,6 +310,93 @@
 - 뒤로가기 버튼 (헤더)
 - 이미지 갤러리: swiper 또는 캐러셀
 - 정보 없는 항목은 숨김 처리
+
+---
+
+### 2.5 반려동물 동반 여행
+
+#### 기능 설명
+
+반려동물과 함께 여행 가능한 관광지 정보를 제공하고, 반려동물 동반 조건 및 시설 상세 정보 제공
+
+#### 상세 요구사항
+
+- **반려동물 필터**
+
+  - 목록 페이지에 "반려동물 동반 가능" 필터 추가
+  - 반려동물 크기별 필터 (소형, 중형, 대형)
+  - 반려동물 종류별 필터 (개, 고양이 등)
+  - 실내/실외 동반 가능 여부
+
+- **목록 표시**
+
+  - 반려동물 동반 가능 관광지에 뱃지 표시 (🐾)
+  - 카드 썸네일에 반려동물 동반 가능 뱃지 표시
+  - 크기별 뱃지 (소형견 가능, 대형견 가능 등)
+
+- **상세페이지 반려동물 섹션**
+
+  - 반려동물 동반 가능 여부 표시
+  - 반려동물 크기 제한 정보
+  - 반려동물 입장 가능 장소 (실내/실외)
+  - 반려동물 동반 추가 요금
+  - 반려동물 전용 시설 정보
+
+- **추가 정보**
+
+  - 주차장 정보 (반려동물 하차 공간)
+  - 산책로 정보
+  - 반려동물 배변 봉투 제공 여부
+  - 반려동물 음수대 위치
+  - 근처 동물병원 정보 (선택 사항)
+
+- **아이콘 및 뱃지**
+
+  - 반려동물 동반 가능 아이콘 (🐾)
+  - 크기별 뱃지 (소형견 가능, 대형견 가능 등)
+  - 카드 썸네일에 뱃지 표시
+
+#### 사용 API
+
+- `detailPetTour2`: 반려동물 동반 여행 정보
+- `areaBasedList2`: 목록 조회 시 반려동물 관련 정보 포함
+
+#### 데이터 구조 예시
+
+```typescript
+interface PetTourInfo {
+  contentid: string;
+  contenttypeid: string;
+  chkpetleash?: string; // 애완동물 동반 여부
+  chkpetsize?: string; // 애완동물 크기
+  chkpetplace?: string; // 입장 가능 장소
+  chkpetfee?: string; // 추가 요금
+  petinfo?: string; // 기타 반려동물 정보
+  parking?: string; // 주차장 정보
+}
+```
+
+#### UI 요구사항
+
+- **목록 페이지**
+  - 필터 영역에 "반려동물 동반 가능" 토글 추가
+  - 반려동물 가능 관광지 카드에 🐾 아이콘 표시
+  - 크기 제한 뱃지 표시 (예: "소형견 OK")
+
+- **상세페이지**
+  - 반려동물 정보 섹션 추가 (기본 정보 다음)
+  - 아이콘 기반 정보 표시 (직관적)
+  - 주의사항 강조 표시
+
+- **반응형 디자인**
+  - 모바일에서도 정보 가독성 확보
+  - 아이콘과 텍스트 조합으로 공간 절약
+
+- **기타**
+  - 필터 섹션에 반려동물 필터 추가
+  - 카드 컴포넌트에 반려동물 뱃지 표시
+  - 상세페이지에 반려동물 정보 섹션 추가
+  - 정보 없는 항목은 숨김 처리
 
 ---
 
@@ -329,6 +437,7 @@
 | 공통정보 조회 | `/detailCommon2`  | 상세페이지 기본정보 | serviceKey, MobileOS, MobileApp, contentId                |
 | 소개정보 조회 | `/detailIntro2`   | 상세페이지 운영정보 | serviceKey, MobileOS, MobileApp, contentId, contentTypeId |
 | 이미지 조회   | `/detailImage2`   | 상세페이지 갤러리   | serviceKey, MobileOS, MobileApp, contentId                |
+| 반려동물 정보 | `/detailPetTour2` | 반려동물 동반 정보  | serviceKey, MobileOS, MobileApp, contentId                |
 
 ### 4.2 Base URL
 
@@ -418,6 +527,38 @@ interface TourIntro {
 }
 ```
 
+### 5.4 반려동물 정보 응답 예시 (detailPetTour2)
+
+```typescript
+interface PetTourInfo {
+  contentid: string;
+  petTursmInfo?: string; // 반려동물 동반 관광지 정보
+  acmpyTypeCd?: string; // 동반 유형 코드
+  acmpyNeedMtr?: string; // 동반 필요 사항
+  acmpyPsblCpam?: string; // 동반 가능 캠핑장
+  relaAcmdtnNm?: string; // 관련 숙박시설명
+  relaFrnshPrdlst?: string; // 관련 편의시설 목록
+  acmpyTypeEtc?: string; // 동반 유형 기타
+  acmpyNeedMtrEtc?: string; // 동반 필요 사항 기타
+  acmpyPsblCpamEtc?: string; // 동반 가능 캠핑장 기타
+  relaAcmdtnNmEtc?: string; // 관련 숙박시설명 기타
+  relaFrnshPrdlstEtc?: string; // 관련 편의시설 목록 기타
+  // 크기별 제한 정보
+  smallSizeAllowed?: boolean; // 소형견 가능
+  mediumSizeAllowed?: boolean; // 중형견 가능
+  largeSizeAllowed?: boolean; // 대형견 가능
+  // 입장 가능 장소
+  indoorAllowed?: boolean; // 실내 입장 가능
+  outdoorAllowed?: boolean; // 실외 입장 가능
+  // 추가 정보
+  additionalFee?: string; // 추가 요금
+  parkingInfo?: string; // 주차장 정보
+  walkingTrail?: string; // 산책로 정보
+  wasteBagProvided?: boolean; // 배변 봉투 제공
+  waterStation?: string; // 음수대 위치
+}
+```
+
 ---
 
 ## 6. 페이지 구조
@@ -445,7 +586,7 @@ app/
 components/
 ├── tour-list.tsx               # 관광지 목록
 ├── tour-card.tsx               # 관광지 카드
-├── tour-filters.tsx            # 필터 (지역/타입)
+├── tour-filters.tsx            # 필터 (지역/타입/반려동물)
 ├── tour-search.tsx             # 검색창
 ├── naver-map.tsx               # 네이버 지도
 ├── tour-detail/
@@ -453,6 +594,7 @@ components/
 │   ├── detail-intro.tsx        # 운영정보
 │   ├── detail-gallery.tsx      # 이미지 갤러리
 │   ├── detail-map.tsx          # 지도
+│   ├── detail-pet.tsx          # 반려동물 정보
 │   └── share-button.tsx        # URL 복사 공유 버튼
 ├── bookmarks/
 │   ├── bookmark-button.tsx     # 북마크 버튼 (별 아이콘)
@@ -579,12 +721,14 @@ NEXT_PUBLIC_STORAGE_BUCKET=uploads
 - [ ] `components/tour-card.tsx` (관광지 카드 - 기본 정보만)
 - [ ] `components/tour-list.tsx` (목록 표시 - 하드코딩 데이터로 테스트)
 - [ ] API 연동하여 실제 데이터 표시
+- [ ] 반려동물 동반 가능 뱃지 표시 (카드 썸네일)
 - [ ] 페이지 확인 및 스타일링 조정
 
 #### 2.3 필터 기능 추가
 - [ ] `components/tour-filters.tsx` (지역/타입 필터 UI)
 - [ ] 필터 동작 연결 (상태 관리)
 - [ ] 필터링된 결과 표시
+- [ ] 반려동물 필터 추가 (크기별, 종류별, 실내/실외)
 - [ ] 페이지 확인 및 UX 개선
 
 #### 2.4 검색 기능 추가 (MVP 2.3)
@@ -642,6 +786,16 @@ NEXT_PUBLIC_STORAGE_BUCKET=uploads
 - [ ] `components/tour-detail/detail-gallery.tsx` (이미지 갤러리)
 - [ ] `detailImage2` API 연동
 - [ ] 페이지 확인
+
+#### 3.6 반려동물 정보 섹션 (MVP 2.5)
+- [ ] `components/tour-detail/detail-pet.tsx` (반려동물 정보)
+- [ ] `detailPetTour2` API 연동
+- [ ] 반려동물 동반 가능 여부 표시
+- [ ] 크기별 제한 정보 표시 (소형/중형/대형)
+- [ ] 실내/실외 입장 가능 정보 표시
+- [ ] 추가 요금, 주차장, 산책로 등 상세 정보 표시
+- [ ] 반려동물 아이콘 및 뱃지 스타일링
+- [ ] 페이지 확인 및 UX 개선
 
 ### Phase 4: 북마크 페이지 (`/bookmarks`) - 선택 사항
 
