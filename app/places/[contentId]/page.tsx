@@ -30,8 +30,9 @@ import { ApiError } from "@/components/ui/error-message";
 import { DetailInfo } from "@/components/tour-detail/detail-info";
 import { DetailIntro } from "@/components/tour-detail/detail-intro";
 import { DetailGallery } from "@/components/tour-detail/detail-gallery";
-import { getDetailCommon, getDetailIntro, getDetailImage } from "@/lib/api/tour-api";
-import type { TourDetail, TourIntro, TourImage } from "@/lib/types/tour";
+import { DetailPet } from "@/components/tour-detail/detail-pet";
+import { getDetailCommon, getDetailIntro, getDetailImage, getDetailPetTour } from "@/lib/api/tour-api";
+import type { TourDetail, TourIntro, TourImage, PetTourInfo } from "@/lib/types/tour";
 import type { Metadata } from "next";
 
 /**
@@ -138,6 +139,7 @@ export default async function DetailPage({ params }: DetailPageProps) {
   let tourDetail: TourDetail | null = null;
   let tourIntro: TourIntro | null = null;
   let tourImages: TourImage[] = [];
+  let petInfo: PetTourInfo | null = null;
   let error: Error | null = null;
 
   try {
@@ -169,6 +171,15 @@ export default async function DetailPage({ params }: DetailPageProps) {
       } catch (imageErr) {
         // 이미지 로드 실패는 치명적이지 않으므로 경고만 출력
         console.warn("⚠️ 관광지 이미지 로드 실패 (무시됨):", imageErr);
+      }
+
+      try {
+        console.log("🐾 반려동물 정보 로드 시작:", contentId);
+        petInfo = await getDetailPetTour(tourDetail.contentid);
+        console.log("✅ 반려동물 정보 로드 완료:", petInfo ? "성공" : "데이터 없음");
+      } catch (petErr) {
+        // 반려동물 정보 로드 실패는 치명적이지 않으므로 경고만 출력
+        console.warn("⚠️ 반려동물 정보 로드 실패 (무시됨):", petErr);
       }
     }
   } catch (err) {
@@ -242,6 +253,9 @@ export default async function DetailPage({ params }: DetailPageProps) {
       <div className="mt-8 space-y-8">
         {/* 운영 정보 섹션 */}
         <DetailIntro intro={tourIntro} />
+
+        {/* 반려동물 정보 섹션 */}
+        <DetailPet petInfo={petInfo} />
 
         {/* 이미지 갤러리 섹션 */}
         <DetailGallery images={tourImages} title={tourDetail.title} />
