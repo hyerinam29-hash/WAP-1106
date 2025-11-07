@@ -171,6 +171,7 @@ export function NaverMap({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [mapType, setMapType] = useState<"NORMAL" | "SATELLITE" | "HYBRID">("NORMAL");
+  const [clientId, setClientId] = useState<string>("");
 
   console.group("🗺️ NaverMap 컴포넌트");
   console.log("Props:", { toursCount: tours.length, areaCode });
@@ -181,6 +182,7 @@ export function NaverMap({
     const rawClientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID || "jz6mn8mwj2";
     // .env 파일의 따옴표 제거 (예: "jz6mn8mwj2" -> jz6mn8mwj2)
     const clientId = rawClientId.replace(/^["']|["']$/g, "").trim();
+    setClientId(clientId); // 상태에 저장하여 에러 메시지에서 사용
 
     console.group("🗺️ 네이버 지도 API 로드");
     console.log("Client ID (원본):", rawClientId);
@@ -740,29 +742,65 @@ Client ID: ${clientId}`
       {/* 에러 상태 */}
       {error && (
         <div className="flex h-[400px] lg:h-[600px] items-center justify-center rounded-lg border bg-destructive/10">
-          <div className="text-center p-6 max-w-md">
-            <div className="mb-4 text-2xl">🗺️</div>
-            <div className="mb-2 text-sm font-medium text-destructive">
+          <div className="text-center p-6 max-w-2xl">
+            <div className="mb-4 text-4xl">🗺️</div>
+            <div className="mb-2 text-lg font-semibold text-destructive">
               네이버 지도 API 인증 실패
             </div>
-            <div className="mb-4 text-xs text-muted-foreground whitespace-pre-line text-left">
+            <div className="mb-6 text-sm text-muted-foreground whitespace-pre-line text-left bg-white/50 p-4 rounded-lg border">
               {error.message}
             </div>
-            <div className="text-xs text-muted-foreground space-y-2 text-left">
-              <div className="font-semibold">확인 사항:</div>
-              <ol className="list-decimal list-inside space-y-1 ml-2">
-                <li>네이버 클라우드 플랫폼에서 Client ID 확인</li>
-                <li>도메인 등록 확인 (localhost:3000 포함)</li>
-                <li>Maps API 서비스 활성화 확인</li>
+            <div className="text-sm text-muted-foreground space-y-3 text-left">
+              <div className="font-semibold text-foreground">✅ 해결 방법:</div>
+              <ol className="list-decimal list-inside space-y-2 ml-2">
                 <li>
                   <a
-                    href="/env-check"
-                    className="text-primary underline hover:text-primary/80"
+                    href="https://console.ncloud.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline hover:text-primary/80 font-medium"
                   >
-                    /env-check 페이지에서 환경 변수 확인
+                    네이버 클라우드 플랫폼 콘솔
                   </a>
+                  접속
+                </li>
+                <li>
+                  <strong>AI·Application Service</strong> → <strong>AI·NAVER API</strong> → <strong>Application 등록 정보</strong>
+                </li>
+                <li>
+                  Client ID <code className="bg-muted px-1 py-0.5 rounded text-xs">{clientId || "확인 필요"}</code> 선택
+                </li>
+                <li>
+                  <strong>"API 설정"</strong> 탭 클릭
+                </li>
+                <li>
+                  <strong>"서비스 URL"</strong>에 다음 추가:
+                  <div className="mt-1 bg-muted p-2 rounded text-xs font-mono">
+                    {typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}
+                  </div>
+                </li>
+                <li>
+                  <strong>Maps API 서비스</strong> 활성화 확인
+                </li>
+                <li>
+                  저장 후 페이지 새로고침 (<code className="bg-muted px-1 py-0.5 rounded text-xs">Ctrl + Shift + R</code>)
                 </li>
               </ol>
+              <div className="mt-4 pt-4 border-t">
+                <a
+                  href="/debug-map"
+                  className="inline-flex items-center gap-2 text-primary underline hover:text-primary/80 font-medium"
+                >
+                  🔍 자동 진단 페이지 열기
+                </a>
+                {" | "}
+                <a
+                  href="/env-check"
+                  className="inline-flex items-center gap-2 text-primary underline hover:text-primary/80 font-medium"
+                >
+                  ⚙️ 환경 변수 확인
+                </a>
+              </div>
             </div>
           </div>
         </div>

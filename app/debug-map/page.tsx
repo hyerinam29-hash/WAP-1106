@@ -120,10 +120,14 @@ export default function DebugMapPage() {
               
 해결 방법:
 1. 네이버 클라우드 플랫폼 (https://console.ncloud.com/) 접속
-2. AI·Application Service → AI·NAVER API
+2. AI·Application Service → AI·NAVER API → Application 등록 정보
 3. Client ID "${clientId}" 선택
-4. "API 설정" 탭에서 서비스 URL에 "${currentDomain}" 추가
-5. Maps 서비스 활성화 확인`,
+4. "API 설정" 탭 클릭
+5. "서비스 URL"에 다음 추가:
+   - ${currentDomain}
+   - http://127.0.0.1:3000 (선택사항)
+6. Maps 서비스 활성화 확인
+7. 저장 후 이 페이지 새로고침`,
             });
             
             setDiagnostics([...results]);
