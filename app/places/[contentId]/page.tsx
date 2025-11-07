@@ -34,6 +34,7 @@ import { getDetailCommon, getDetailIntro, getDetailImage } from "@/lib/api/tour-
 import type { TourDetail, TourIntro, TourImage } from "@/lib/types/tour";
 import type { Metadata } from "next";
 import DetailMap from "@/components/tour-detail/detail-map";
+import { toWgs84FromKTO } from "@/lib/utils/coordinates";
 
 /**
  * 상세페이지 Props
@@ -251,12 +252,12 @@ export default async function DetailPage({ params }: DetailPageProps) {
         <section className="rounded-lg border bg-card p-6">
           <h2 className="mb-4 text-xl font-semibold">위치 정보</h2>
           {(() => {
-            const lng = parseFloat(tourDetail!.mapx) / 10000000;
-            const lat = parseFloat(tourDetail!.mapy) / 10000000;
-            const isValid =
-              Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0;
+            const { lng, lat, valid } = toWgs84FromKTO(
+              tourDetail!.mapx,
+              tourDetail!.mapy
+            );
 
-            if (!isValid) {
+            if (!valid) {
               return (
                 <p className="text-sm text-muted-foreground">
                   좌표 정보가 없어 지도를 표시할 수 없습니다.

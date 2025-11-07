@@ -63,15 +63,7 @@ interface NaverMapProps {
  * // { lng: 126.978, lat: 37.5665 }
  * ```
  */
-function convertKATECToWGS84(
-  mapx: string,
-  mapy: string
-): { lng: number; lat: number } {
-  return {
-    lng: parseFloat(mapx) / 10000000,
-    lat: parseFloat(mapy) / 10000000,
-  };
-}
+import { convertKATECToWGS84 } from "@/lib/utils/coordinates";
 
 /**
  * 네이버 지도 타입 선언 (전역 window 객체 확장)
