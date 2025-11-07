@@ -264,18 +264,18 @@ Phase 1의 기반 위에 홈페이지 기능을 구현합니다.
   - [x] 좌표 정보 표시 (선택 사항)
 
 ### 3.6 공유하기 기능 (MVP 2.4.5)
-- [ ] `components/tour-detail/share-button.tsx` 생성
-  - [ ] URL 복사 버튼
-  - [ ] 클립보드 API 사용
-  - [ ] 복사 완료 토스트 메시지
-  - [ ] 공유 아이콘
-- [ ] Open Graph 메타태그
-  - [ ] Next.js Metadata API 사용
-  - [ ] `og:title` - 관광지명
-  - [ ] `og:description` - 관광지 설명
-  - [ ] `og:image` - 대표 이미지
-  - [ ] `og:url` - 상세페이지 URL
-  - [ ] `og:type` - website
+- [x] `components/tour-detail/share-button.tsx` 생성
+  - [x] URL 복사 버튼
+  - [x] 클립보드 API 사용
+  - [x] 복사 완료 토스트 메시지
+  - [x] 공유 아이콘
+- [x] Open Graph 메타태그
+  - [x] Next.js Metadata API 사용
+  - [x] `og:title` - 관광지명
+  - [x] `og:description` - 관광지 설명
+  - [x] `og:image` - 대표 이미지
+  - [x] `og:url` - 상세페이지 URL
+  - [x] `og:type` - website
 
 ### 3.7 반려동물 정보 섹션 (MVP 2.5)
 - [ ] `components/tour-detail/detail-pet.tsx` 생성
