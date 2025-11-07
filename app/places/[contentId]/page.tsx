@@ -31,6 +31,7 @@ import { DetailInfo } from "@/components/tour-detail/detail-info";
 import { DetailIntro } from "@/components/tour-detail/detail-intro";
 import { DetailGallery } from "@/components/tour-detail/detail-gallery";
 import { DetailPet } from "@/components/tour-detail/detail-pet";
+import { DetailMap } from "@/components/tour-detail/detail-map";
 import { getDetailCommon, getDetailIntro, getDetailImage, getDetailPetTour } from "@/lib/api/tour-api";
 import type { TourDetail, TourIntro, TourImage, PetTourInfo } from "@/lib/types/tour";
 import type { Metadata } from "next";
@@ -260,13 +261,8 @@ export default async function DetailPage({ params }: DetailPageProps) {
         {/* 이미지 갤러리 섹션 */}
         <DetailGallery images={tourImages} title={tourDetail.title} />
 
-        {/* 지도 섹션 (향후 구현 예정) */}
-        <section className="rounded-lg border bg-card p-6">
-          <h2 className="mb-4 text-xl font-semibold">위치 정보</h2>
-          <p className="text-sm text-muted-foreground">
-            지도 기능은 향후 구현 예정입니다.
-          </p>
-        </section>
+        {/* 지도 섹션 */}
+        <DetailMap tour={tourDetail} />
       </div>
     </div>
   );
