@@ -102,11 +102,44 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
    * 네이버 지도 초기화
    */
   const initMap = useCallback(() => {
-    if (!mapRef.current || !window.naver?.maps) {
-      console.error("❌ 지도 초기화 조건 미충족");
+    console.log("🔍 initMap 호출됨");
+    console.log("  - mapRef.current:", mapRef.current ? "존재" : "없음");
+    console.log("  - window.naver:", window.naver ? "존재" : "없음");
+    console.log("  - window.naver?.maps:", window.naver?.maps ? "존재" : "없음");
+    
+    // 지도 컨테이너 확인
+    if (!mapRef.current) {
+      console.error("❌ 지도 컨테이너가 없습니다");
+      setError(new Error("지도 컨테이너를 찾을 수 없습니다. 페이지를 새로고침해주세요."));
+      setIsLoading(false);
+      return;
+    }
+
+    // 네이버 지도 API 확인
+    if (!window.naver?.maps) {
+      console.error("❌ 네이버 지도 API가 로드되지 않았습니다");
+      console.error("  - window.naver:", window.naver);
+      console.error("  - window.naver?.maps:", window.naver?.maps);
+      
+      setError(
+        new Error(
+          `네이버 지도 API가 로드되지 않았습니다.
+          
+가능한 원인:
+1. 네이버 지도 API 인증 실패 (도메인 미등록)
+2. 네트워크 연결 문제
+3. 스크립트 로드 지연
+
+해결 방법:
+- /debug-map 페이지에서 자동 진단 실행
+- 네이버 클라우드 플랫폼에서 도메인 등록 확인`
+        )
+      );
+      setIsLoading(false);
       return;
     }
     
+    // 이미 초기화된 경우
     if (mapInstanceRef.current) {
       console.log("✅ 지도가 이미 초기화되어 있습니다");
       setIsLoading(false);
@@ -134,7 +167,11 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
       setIsLoading(false);
     } catch (err) {
       console.error("❌ DetailMap 초기화 실패:", err);
-      setError(new Error("지도를 초기화하는데 실패했습니다."));
+      setError(
+        new Error(
+          `지도를 초기화하는데 실패했습니다: ${err instanceof Error ? err.message : "알 수 없는 오류"}`
+        )
+      );
       setIsLoading(false);
     }
   }, [lat, lng, title]);
@@ -159,7 +196,28 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
     if (window.naver?.maps) {
       console.log("✅ 네이버 지도 API 이미 로드됨");
       console.groupEnd();
-      initMap();
+      
+      // 지도 컨테이너가 준비될 때까지 약간 대기
+      if (!mapRef.current) {
+        console.log("⏳ 지도 컨테이너 대기 중...");
+        const checkContainer = setInterval(() => {
+          if (mapRef.current) {
+            clearInterval(checkContainer);
+            console.log("✅ 지도 컨테이너 준비 완료");
+            initMap();
+          }
+        }, 100);
+        setTimeout(() => {
+          clearInterval(checkContainer);
+          if (!mapRef.current) {
+            console.error("❌ 지도 컨테이너를 찾을 수 없습니다 (타임아웃)");
+            setError(new Error("지도 컨테이너를 찾을 수 없습니다. 페이지를 새로고침해주세요."));
+            setIsLoading(false);
+          }
+        }, 2000);
+      } else {
+        initMap();
+      }
       return;
     }
 
@@ -171,7 +229,26 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
         if (window.naver?.maps) {
           clearInterval(poll);
           console.groupEnd();
-          initMap();
+          
+          // 지도 컨테이너 확인 후 초기화
+          if (mapRef.current) {
+            initMap();
+          } else {
+            console.log("⏳ 지도 컨테이너 대기 중...");
+            const checkContainer = setInterval(() => {
+              if (mapRef.current) {
+                clearInterval(checkContainer);
+                initMap();
+              }
+            }, 100);
+            setTimeout(() => {
+              clearInterval(checkContainer);
+              if (!mapRef.current) {
+                setError(new Error("지도 컨테이너를 찾을 수 없습니다."));
+                setIsLoading(false);
+              }
+            }, 2000);
+          }
         }
       }, 100);
       setTimeout(() => clearInterval(poll), 10000);
@@ -196,7 +273,28 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
           clearInterval(checkNaverMaps);
           console.log("✅ 네이버 지도 API 준비 완료");
           console.groupEnd();
-          initMap();
+          
+          // 지도 컨테이너 확인 후 초기화
+          if (mapRef.current) {
+            initMap();
+          } else {
+            console.log("⏳ 지도 컨테이너 대기 중...");
+            const checkContainer = setInterval(() => {
+              if (mapRef.current) {
+                clearInterval(checkContainer);
+                console.log("✅ 지도 컨테이너 준비 완료");
+                initMap();
+              }
+            }, 100);
+            setTimeout(() => {
+              clearInterval(checkContainer);
+              if (!mapRef.current) {
+                console.error("❌ 지도 컨테이너를 찾을 수 없습니다 (타임아웃)");
+                setError(new Error("지도 컨테이너를 찾을 수 없습니다. 페이지를 새로고침해주세요."));
+                setIsLoading(false);
+              }
+            }, 2000);
+          }
         } else if (attempts >= maxAttempts) {
           clearInterval(checkNaverMaps);
           console.error("❌ 네이버 지도 API 타임아웃");
@@ -257,8 +355,24 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
   if (error) {
     return (
       <div className={className}>
-        <div className="h-[300px] w-full rounded-lg border flex items-center justify-center bg-destructive/10 text-xs p-4">
-          <p className="text-destructive text-center">{error.message}</p>
+        <div className="h-[300px] w-full rounded-lg border flex items-center justify-center bg-destructive/10">
+          <div className="text-center p-6 max-w-md">
+            <div className="mb-4 text-4xl">🗺️</div>
+            <div className="mb-2 text-sm font-semibold text-destructive">
+              네이버 지도 로드 실패
+            </div>
+            <div className="mb-4 text-xs text-muted-foreground whitespace-pre-line text-left bg-white/50 p-4 rounded-lg border">
+              {error.message}
+            </div>
+            <div className="text-xs text-muted-foreground space-y-2">
+              <a
+                href="/debug-map"
+                className="inline-flex items-center gap-2 text-primary underline hover:text-primary/80 font-medium"
+              >
+                🔍 자동 진단 페이지 열기
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     );
