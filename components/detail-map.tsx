@@ -114,8 +114,8 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
 
   useEffect(() => {
     // Client ID 가져오기 (환경 변수에서 읽기, 따옴표 제거)
-    const rawClientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID || "jz6mm8mwj2";
-    // .env 파일의 따옴표 제거 (예: "jz6mm8mwj2" -> jz6mm8mwj2)
+    const rawClientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID || "jz6mn8mwj2";
+    // .env 파일의 따옴표 제거 (예: "jz6mn8mwj2" -> jz6mn8mwj2)
     const clientId = rawClientId.replace(/^["']|["']$/g, "").trim();
     
     console.group("🗺️ DetailMap 스크립트 로드");
