@@ -234,10 +234,21 @@ export function NaverMap({
       return;
     }
 
-    // 스크립트 동적 로드 (oapi + ncpKeyId)
+    // 스크립트 동적 로드 (oapi + ncpKeyId + callback)
     const script = document.createElement("script");
-    // 공식 문서 기준 엔드포인트 및 파라미터
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
+    // 공식 문서 기준 엔드포인트 및 파라미터 + callback
+    (window as any).__naverMapOnLoad = () => {
+      console.log("✅ NaverMap callback fired (__naverMapOnLoad)");
+      if (mapRef.current) {
+        initMap();
+      } else {
+        console.warn("⏳ callback fired but container not ready; delaying init");
+        setTimeout(() => {
+          if (mapRef.current) initMap();
+        }, 100);
+      }
+    };
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&callback=__naverMapOnLoad`;
     script.async = true;
     
     console.log("📡 스크립트 로드 URL:", script.src);

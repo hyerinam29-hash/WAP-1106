@@ -257,9 +257,17 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
       return;
     }
 
-    // 스크립트 동적 로드 (oapi + ncpKeyId)
+    // 스크립트 동적 로드 (oapi + ncpKeyId + callback)
     const script = document.createElement("script");
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
+    (window as any).__detailMapOnLoad = () => {
+      console.log("✅ DetailMap callback fired (__detailMapOnLoad)");
+      if (mapRef.current) {
+        initMap();
+      } else {
+        setTimeout(() => mapRef.current && initMap(), 100);
+      }
+    };
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&callback=__detailMapOnLoad`;
     script.async = true;
 
     // 인증 실패 콜백 등록

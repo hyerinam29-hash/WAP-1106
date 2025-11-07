@@ -152,8 +152,16 @@ export default function DetailMap({ lat, lng, title, className }: DetailMapProps
     }
 
         const script = document.createElement("script");
-        // JS v3 공식 엔드포인트 및 파라미터: ncpKeyId
-        script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
+        // JS v3 공식 엔드포인트 및 파라미터: ncpKeyId + callback
+        (window as any).__simpleDetailMapOnLoad = () => {
+          console.log("✅ Simple DetailMap callback fired (__simpleDetailMapOnLoad)");
+          if (mapRef.current) {
+            initMap();
+          } else {
+            setTimeout(() => mapRef.current && initMap(), 100);
+          }
+        };
+        script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&callback=__simpleDetailMapOnLoad`;
         script.async = true;
 
         // 인증 실패 콜백 등록
