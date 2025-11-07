@@ -14,9 +14,6 @@ export const REQUIRED_ENV_VARS = {
   NEXT_PUBLIC_TOUR_API_KEY: process.env.NEXT_PUBLIC_TOUR_API_KEY,
   TOUR_API_KEY: process.env.TOUR_API_KEY,
   
-  // 네이버 지도 API
-  NEXT_PUBLIC_NAVER_MAP_CLIENT_ID: process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID,
-  
   // Clerk (이미 설정됨)
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
@@ -37,10 +34,6 @@ export function checkEnvVars() {
       backup: !!REQUIRED_ENV_VARS.TOUR_API_KEY,
       allSet: false,
     },
-    naverMap: {
-      clientId: !!REQUIRED_ENV_VARS.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID,
-      allSet: false,
-    },
     clerk: {
       publishable: !!REQUIRED_ENV_VARS.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
       secret: !!REQUIRED_ENV_VARS.CLERK_SECRET_KEY,
@@ -56,7 +49,6 @@ export function checkEnvVars() {
 
   // 전체 설정 여부 확인
   results.tourApi.allSet = results.tourApi.nextPublic || results.tourApi.backup;
-  results.naverMap.allSet = results.naverMap.clientId;
   results.clerk.allSet = results.clerk.publishable && results.clerk.secret;
   results.supabase.allSet = results.supabase.url && results.supabase.anonKey && results.supabase.serviceRole;
 
@@ -75,11 +67,6 @@ export function logEnvStatus() {
   console.log(`NEXT_PUBLIC_TOUR_API_KEY: ${status.tourApi.nextPublic ? '✅ 설정됨' : '❌ 미설정'}`);
   console.log(`TOUR_API_KEY: ${status.tourApi.backup ? '✅ 설정됨' : '⚠️ 미설정 (백업)'}`);
   console.log(`전체: ${status.tourApi.allSet ? '✅' : '❌'}`);
-  console.groupEnd();
-  
-  console.group('🗺️ 네이버 지도 API');
-  console.log(`NEXT_PUBLIC_NAVER_MAP_CLIENT_ID: ${status.naverMap.clientId ? '✅ 설정됨' : '❌ 미설정'}`);
-  console.log(`전체: ${status.naverMap.allSet ? '✅' : '❌'}`);
   console.groupEnd();
   
   console.group('🔐 Clerk (이미 설정됨)');

@@ -83,57 +83,6 @@ export default function EnvCheckPage() {
           </div>
         </section>
 
-        {/* 네이버 지도 API */}
-        <section className="border rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            🗺️ 네이버 지도 API
-            {envStatus.naverMap.allSet ? (
-              <span className="text-green-600">✅</span>
-            ) : (
-              <span className="text-red-600">❌</span>
-            )}
-          </h2>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-mono">NEXT_PUBLIC_NAVER_MAP_CLIENT_ID</span>
-              {envStatus.naverMap.clientId ? (
-                <span className="text-green-600">✅ 설정됨</span>
-              ) : (
-                <span className="text-red-600">❌ 미설정</span>
-              )}
-            </div>
-            {envStatus.naverMap.clientId && (
-              <div className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded">
-                키 길이: {process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID?.length || 0}자
-                {process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID && (
-                  <span className="block mt-1">
-                    시작: {process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID.substring(0, 10)}...
-                  </span>
-                )}
-              </div>
-            )}
-            {!envStatus.naverMap.allSet && (
-              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
-                <p className="text-sm text-yellow-800">
-                  <strong>설정 방법:</strong>
-                  <ol className="list-decimal list-inside mt-2 space-y-1">
-                    <li>네이버 클라우드 플랫폼에서 프로젝트 생성</li>
-                    <li>Maps API 서비스 활성화</li>
-                    <li>Client ID 발급 후 .env 파일에 추가</li>
-                  </ol>
-                  <a
-                    href="https://www.ncloud.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline mt-2 inline-block"
-                  >
-                    네이버 클라우드 플랫폼 →
-                  </a>
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
 
         {/* Clerk (이미 설정됨) */}
         <section className="border rounded-lg p-6 bg-gray-50">
@@ -210,14 +159,6 @@ export default function EnvCheckPage() {
             <div className="flex items-center justify-between">
               <span>한국관광공사 API</span>
               {envStatus.tourApi.allSet ? (
-                <span className="text-green-600 font-semibold">✅ 완료</span>
-              ) : (
-                <span className="text-red-600 font-semibold">❌ 미완료</span>
-              )}
-            </div>
-            <div className="flex items-center justify-between">
-              <span>네이버 지도 API</span>
-              {envStatus.naverMap.allSet ? (
                 <span className="text-green-600 font-semibold">✅ 완료</span>
               ) : (
                 <span className="text-red-600 font-semibold">❌ 미완료</span>

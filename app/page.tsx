@@ -30,7 +30,6 @@ import { TourList } from "@/components/tour-list";
 import { TourFilters, type TourFilters as TourFiltersType } from "@/components/tour-filters";
 import { TourSearch } from "@/components/tour-search";
 import { Pagination } from "@/components/ui/pagination";
-import { NaverMap } from "@/components/naver-map";
 import { getAreaBasedList, searchKeyword } from "@/lib/api/tour-api-client";
 import type { TourItem } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
@@ -56,9 +55,7 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [numOfRows] = useState(20); // 페이지당 항목 수
-  // 모바일 탭 상태 (목록/지도 전환)
-  const [mobileTab, setMobileTab] = useState<"list" | "map">("list");
-  // 선택된 관광지 ID (지도 연동용)
+  // 선택된 관광지 ID
   const [selectedTourId, setSelectedTourId] = useState<string | undefined>();
 
   console.group("🏠 HomePage 렌더링");
@@ -274,123 +271,36 @@ export default function HomePage() {
           </div>
         </aside>
 
-        {/* 메인 영역: 목록 + 지도 */}
+        {/* 메인 영역: 목록 */}
         <div className="lg:col-span-3 space-y-8">
-          {/* 모바일 탭 전환 버튼 (lg 이상에서는 숨김) */}
-          <div className="flex gap-2 lg:hidden">
-            <button
-              onClick={() => setMobileTab("list")}
-              className={cn(
-                "flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                mobileTab === "list"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              )}
-            >
-              📋 목록
-            </button>
-            <button
-              onClick={() => setMobileTab("map")}
-              className={cn(
-                "flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                mobileTab === "map"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              )}
-            >
-              🗺️ 지도
-            </button>
-          </div>
+          <TourList
+            tours={tours}
+            isLoading={isLoading}
+            error={error}
+            onRetry={handleRetry}
+            emptyStateType={
+              searchMode === "search" ? "search" : 
+              searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
+              "default"
+            }
+            onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
+            keyword={keyword}
+            columns={3}
+            sortBy={sortBy}
+            onCardClick={setSelectedTourId}
+            selectedTourId={selectedTourId}
+          />
 
-          {/* 데스크톱: 목록과 지도 분할 레이아웃 */}
-          <div className="hidden lg:grid lg:grid-cols-3 gap-8">
-            {/* 목록 영역 (2칸) */}
-            <div className="lg:col-span-2">
-              <TourList
-                tours={tours}
-                isLoading={isLoading}
-                error={error}
-                onRetry={handleRetry}
-                emptyStateType={
-                  searchMode === "search" ? "search" : 
-                  searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
-                  "default"
-                }
-                onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
-                keyword={keyword}
-                columns={3}
-                sortBy={sortBy}
-                onCardClick={setSelectedTourId}
-                selectedTourId={selectedTourId}
+          {/* 페이지네이션 */}
+          {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
               />
-
-              {/* 페이지네이션 */}
-              {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
-                <div className="mt-8 flex justify-center">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
-              )}
             </div>
-
-            {/* 지도 영역 (1칸) */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-4">
-                <NaverMap
-                  tours={tours}
-                  areaCode={filters.areaCode}
-                  selectedTourId={selectedTourId}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 모바일: 탭에 따라 목록 또는 지도만 표시 */}
-          <div className="lg:hidden">
-            {mobileTab === "list" && (
-              <>
-                <TourList
-                  tours={tours}
-                  isLoading={isLoading}
-                  error={error}
-                  onRetry={handleRetry}
-                  emptyStateType={
-                    searchMode === "search" ? "search" : 
-                    searchMode === "filter" && (filters.areaCode || filters.contentTypeId) ? "filter" : 
-                    "default"
-                  }
-                  onReset={searchMode === "search" ? handleSearchReset : () => setFilters({})}
-                  keyword={keyword}
-                  columns={1}
-                  sortBy={sortBy}
-                  onCardClick={setSelectedTourId}
-                  selectedTourId={selectedTourId}
-                />
-
-                {/* 페이지네이션 */}
-                {!isLoading && !error && tours.length > 0 && totalPages > 1 && (
-                  <div className="mt-8 flex justify-center">
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={handlePageChange}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-
-            {mobileTab === "map" && (
-              <NaverMap
-                tours={tours}
-                areaCode={filters.areaCode}
-                selectedTourId={selectedTourId}
-              />
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
