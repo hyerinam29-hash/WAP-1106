@@ -26,7 +26,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Star, Loader2 } from "lucide-react";
 import { useUser, useAuth, SignInButton } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -37,12 +37,15 @@ import {
   removeBookmark,
   isBookmarked,
 } from "@/lib/api/supabase-api";
-import type { ButtonProps } from "@/components/ui/button";
+import type { VariantProps } from "class-variance-authority";
+import { buttonVariants } from "@/components/ui/button";
 
 /**
  * 북마크 버튼 Props
  */
-interface BookmarkButtonProps extends Omit<ButtonProps, "onClick"> {
+interface BookmarkButtonProps
+  extends Omit<React.ComponentProps<"button">, "onClick">,
+    VariantProps<typeof buttonVariants> {
   /** 한국관광공사 API contentId */
   contentId: string;
   /** 관광지명 (선택 사항, 토스트 메시지에 사용) */
