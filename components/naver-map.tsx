@@ -621,7 +621,7 @@ export function NaverMap({
       const { lat, lng } = toWgs84FromKTO(tour.mapx, tour.mapy);
       const position = new window.naver.maps.LatLng(lat, lng);
       const color = getMarkerColorByContentType(tour.contenttypeid);
-      let markerOptions: any = {
+      const markerOptions: any = {
         position,
         map: mapInstanceRef.current,
         title: tour.title,
@@ -919,10 +919,10 @@ export function NaverMap({
                   Client ID 선택
                 </li>
                 <li>
-                  <strong>"API 설정"</strong> 탭 클릭
+                  <strong>&quot;API 설정&quot;</strong> 탭 클릭
                 </li>
                 <li>
-                  <strong>"서비스 URL"</strong>에 다음 추가:
+                  <strong>&quot;서비스 URL&quot;</strong>에 다음 추가:
                   <div className="mt-1 bg-muted p-2 rounded text-xs font-mono">
                     {typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}
                   </div>
