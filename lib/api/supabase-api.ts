@@ -18,7 +18,7 @@
  * @see PRD.md 2.4.5 북마크 기능
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 
 /**
  * 북마크 데이터 타입
@@ -74,7 +74,7 @@ export async function addBookmark(
       };
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = getServiceRoleClient();
 
     // 북마크 추가
     const { data, error } = await supabase
@@ -161,7 +161,7 @@ export async function removeBookmark(
       };
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = getServiceRoleClient();
 
     // 북마크 삭제
     const { error } = await supabase
@@ -234,7 +234,7 @@ export async function getBookmarks(
       };
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = getServiceRoleClient();
 
     // 북마크 목록 조회 (최신순 정렬)
     const { data, error } = await supabase
@@ -312,7 +312,7 @@ export async function isBookmarked(
       };
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = getServiceRoleClient();
 
     // 북마크 존재 여부 확인
     const { data, error } = await supabase
