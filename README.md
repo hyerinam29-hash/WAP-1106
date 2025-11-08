@@ -492,6 +492,42 @@ saas-template/
 - [Supabase 문서](https://supabase.com/docs)
 - [shadcn/ui 문서](https://ui.shadcn.com/)
 - [Tailwind CSS v4 문서](https://tailwindcss.com/docs)
+- [네이버 지도 API v3 (NCP) 공식 가이드](https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Getting-Started.html)
+
+## 🔧 트러블슈팅
+
+### 네이버 지도 API 인증 실패 (401/403 에러)
+
+네이버 지도가 표시되지 않고 `navermap_authFailure` 또는 `401 Unauthorized` 에러가 발생하는 경우:
+
+**📋 빠른 체크리스트:**
+
+1. **Client ID 확인**
+   - `.env` 파일에 `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID` 정확히 입력
+   - 개발 서버 재시작 (`pnpm dev`)
+
+2. **네이버 클라우드 플랫폼 콘솔 설정**
+   - https://console.ncloud.com/ 접속
+   - AI·Application Service → AI·NAVER API → Application 등록 정보
+   - Client ID 선택 → "API 설정" 탭
+   - **서비스 URL**에 `http://localhost:3000` 정확히 등록 (슬래시 없이!)
+   - **Maps API** 또는 **Web Dynamic Map** 서비스 활성화 (파란색 토글)
+   - **"저장"** 클릭 필수!
+
+3. **브라우저 캐시 삭제**
+   - 하드 새로고침: `Ctrl + Shift + R` (Windows/Linux) 또는 `Cmd + Shift + R` (Mac)
+   - 또는 시크릿/InPrivate 모드로 테스트
+
+4. **테스트 페이지 확인**
+   - http://localhost:3000/dev/naver-map 접속
+   - 브라우저 개발자 도구(F12) → Console 탭에서 상세 로그 확인
+   - Network 탭에서 `auth?ncpKeyId=` 요청의 Status Code 확인
+
+**📖 상세 가이드:**
+프로젝트 루트의 [`NAVER_MAP_TROUBLESHOOTING.md`](./NAVER_MAP_TROUBLESHOOTING.md) 파일을 참고하세요.
+
+**💬 문의:**
+- 네이버 클라우드 플랫폼 고객센터: https://www.ncloud.com/support/question
 #   w e p 1 1 0 6 
  
  

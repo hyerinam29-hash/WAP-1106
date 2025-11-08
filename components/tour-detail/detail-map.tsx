@@ -22,7 +22,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { MapPin, Navigation, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toWgs84FromKTO } from "@/lib/utils/coordinates";
@@ -57,6 +57,11 @@ export function DetailMap({ tour, className }: DetailMapProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  // 초기화/지오코딩/스크립트 로드 상태 추적 (무한 루프 방지)
+  const scriptLoadedRef = useRef(false);
+  const geocodingAttemptedRef = useRef(false);
+  const [geocodingState, setGeocodingState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [finalCoordinates, setFinalCoordinates] = useState<{ lng: number; lat: number } | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
 
@@ -78,19 +83,28 @@ export function DetailMap({ tour, className }: DetailMapProps) {
     mapyValue: String(tour.mapy),
   });
 
-  // 좌표 변환 (KATEC → WGS84)
-  const { lng, lat, valid } = toWgs84FromKTO(tour.mapx, tour.mapy);
-  
-  // 변환 결과 상세 로깅
-  console.log("좌표 변환 결과:", {
-    lng: lng.toFixed(8),
-    lat: lat.toFixed(8),
-    valid,
-    isInKoreaRange: lat >= 33.0 && lat <= 38.6 && lng >= 124.0 && lng <= 132.0,
-  });
+  // 🔥 무한 루프 해결: 좌표 변환을 useMemo로 메모이제이션
+  // tour.mapx, tour.mapy가 변경될 때만 재계산됩니다
+  const convertedCoords = useMemo(() => {
+    const result = toWgs84FromKTO(tour.mapx, tour.mapy);
+    console.log("좌표 변환 결과 (useMemo):", {
+      lng: result.lng.toFixed(8),
+      lat: result.lat.toFixed(8),
+      valid: result.valid,
+      isInKoreaRange: result.lat >= 33.0 && result.lat <= 38.6 && result.lng >= 124.0 && result.lng <= 132.0,
+    });
+    return result;
+  }, [tour.mapx, tour.mapy]);
 
+  const { lng, lat, valid } = convertedCoords;
+  
   // 한국 좌표 범위 검증
-  const isInKoreaRange = lat >= 33.0 && lat <= 38.6 && lng >= 124.0 && lng <= 132.0;
+  const isInKoreaRange = useMemo(() => {
+    return lat >= 33.0 && lat <= 38.6 && lng >= 124.0 && lng <= 132.0;
+  }, [lat, lng]);
+  
+  // 최종 사용할 좌표: KATEC 좌표가 유효하면 사용, 아니면 Geocoder로 얻은 좌표 사용
+  const useCoordinates = finalCoordinates || (valid && isInKoreaRange ? { lng, lat } : null);
   
   if (!isInKoreaRange && valid) {
     console.warn("⚠️ 좌표가 한국 범위를 벗어남:", {
@@ -117,20 +131,35 @@ export function DetailMap({ tour, className }: DetailMapProps) {
   }
 
   useEffect(() => {
-    // 좌표가 유효하지 않거나 한국 범위를 벗어나면 지도 초기화하지 않음
+    console.log("🔄 useEffect 실행 - contentid:", tour.contentid);
+    
+    // 🔥 무한 루프 해결: finalCoordinates 초기화
+    // valid && isInKoreaRange 일 때만 finalCoordinates 설정
+    if (valid && isInKoreaRange && !finalCoordinates) {
+      console.log("✅ 유효한 좌표 설정:", { lng, lat });
+      setFinalCoordinates({ lng, lat });
+      // return; // 여기서 return하지 않고 계속 진행하여 지도 로드
+    }
+    
+    // 좌표가 유효하지 않거나 한국 범위를 벗어난 경우
     if (!valid || !isInKoreaRange) {
-      setIsLoading(false);
-      if (!valid) {
-        setError(new Error("관광지 위치 정보가 없습니다."));
-      } else if (!isInKoreaRange) {
-        setError(
-          new Error(
-            `좌표가 한국 범위를 벗어났습니다. (위도: ${lat.toFixed(6)}, 경도: ${lng.toFixed(6)})`
-          )
-        );
+      const fullAddress = [tour.addr1, tour.addr2].filter(Boolean).join(" ");
+      if (!fullAddress) {
+        // 주소도 없으면 에러 표시
+        setIsLoading(false);
+        if (!valid) {
+          setError(new Error("관광지 위치 정보가 없습니다."));
+        } else if (!isInKoreaRange) {
+          setError(
+            new Error(
+              `좌표가 한국 범위를 벗어났습니다. (위도: ${lat.toFixed(6)}, 경도: ${lng.toFixed(6)})`
+            )
+          );
+        }
+        console.groupEnd();
+        return;
       }
-      console.groupEnd();
-      return;
+      // 주소가 있으면 Geocoder는 네이버 지도 API 로드 후 호출
     }
 
     // 네이버 지도 API Client ID
@@ -147,14 +176,144 @@ export function DetailMap({ tour, className }: DetailMapProps) {
 
     // 인증 실패 플래그 (타임아웃 중단용) - 상위 스코프에 선언
     let authFailed = false;
+    
+    // 주소 기반 좌표 변환 함수
+    function geocodeAddress(address: string) {
+      const naverMaps = window.naver?.maps as any;
+      if (!naverMaps?.Service) {
+        console.error("❌ Geocoder 서비스가 준비되지 않았습니다.");
+        setGeocodingState('error');
+        setIsLoading(false);
+        setError(new Error("지도 API가 준비되지 않았습니다."));
+        console.groupEnd();
+        return;
+      }
+
+      // 동일 주소로 중복 시도 방지
+      if (geocodingAttemptedRef.current) {
+        console.warn("⚠️ Geocoder는 이미 시도되었습니다. 중복 호출 방지");
+        return;
+      }
+      geocodingAttemptedRef.current = true;
+
+      console.group("📍 Geocoder API 호출");
+      console.log("주소:", address);
+      setGeocodingState('loading');
+
+      // naver.maps.Service.geocode 사용
+      naverMaps.Service.geocode(
+        {
+          query: address,
+        },
+        (status: any, response: any) => {
+          console.log("Geocoder 응답 상태:", status);
+          console.log("Geocoder 응답:", response);
+
+          if (status !== naverMaps.Service.Status.OK) {
+            console.error("❌ Geocoder API 호출 실패:", status);
+            setGeocodingState('error');
+            setIsLoading(false);
+            setError(
+              new Error(
+                `주소를 좌표로 변환하는데 실패했습니다. (상태: ${status})`
+              )
+            );
+            console.groupEnd();
+            return;
+          }
+
+          const result = response.v2;
+          const items = result.addresses;
+
+          if (!items || items.length === 0) {
+            console.warn("⚠️ Geocoder 결과가 없습니다.");
+            setGeocodingState('error');
+            setIsLoading(false);
+            setError(new Error("주소에 해당하는 좌표를 찾을 수 없습니다."));
+            console.groupEnd();
+            return;
+          }
+
+          // 첫 번째 결과 사용
+          const firstResult = items[0];
+          const geocodedLng = parseFloat(firstResult.x);
+          const geocodedLat = parseFloat(firstResult.y);
+
+          console.log("✅ Geocoder 좌표 획득:", {
+            lng: geocodedLng,
+            lat: geocodedLat,
+            roadAddress: firstResult.roadAddress || firstResult.jibunAddress,
+          });
+
+          // 좌표 유효성 검증
+          if (
+            !Number.isFinite(geocodedLat) ||
+            !Number.isFinite(geocodedLng) ||
+            geocodedLat === 0 ||
+            geocodedLng === 0
+          ) {
+            console.error("❌ Geocoder로 얻은 좌표가 유효하지 않습니다.");
+            setGeocodingState('error');
+            setIsLoading(false);
+            setError(new Error("좌표 변환 결과가 유효하지 않습니다."));
+            console.groupEnd();
+            return;
+          }
+
+          // 한국 좌표 범위 검증
+          const isGeocodedInKoreaRange =
+            geocodedLat >= 33.0 &&
+            geocodedLat <= 38.6 &&
+            geocodedLng >= 124.0 &&
+            geocodedLng <= 132.0;
+
+          if (!isGeocodedInKoreaRange) {
+            console.warn("⚠️ Geocoder로 얻은 좌표가 한국 범위를 벗어남");
+            setGeocodingState('error');
+            setIsLoading(false);
+            setError(
+              new Error(
+                `변환된 좌표가 한국 범위를 벗어났습니다. (위도: ${geocodedLat.toFixed(6)}, 경도: ${geocodedLng.toFixed(6)})`
+              )
+            );
+            console.groupEnd();
+            return;
+          }
+
+          // 좌표 설정 및 지도 초기화
+          setFinalCoordinates({ lng: geocodedLng, lat: geocodedLat });
+          setGeocodingState('success');
+          console.log("✅ Geocoder 좌표 변환 성공, 지도 초기화 진행");
+          console.groupEnd();
+          
+          // 지도 초기화
+          waitForContainer();
+        }
+      );
+    }
 
     /**
      * 네이버 지도 API 스크립트 로드
      */
     function loadNaverMapScript() {
+      // 이미 window.naver.maps가 있으면 스크립트 로드 생략
+      if (window.naver?.maps) {
+        console.log("ℹ️ 네이버 지도 API가 이미 로드됨");
+        waitForNaverMaps();
+        return;
+      }
+
+      // 중복 로드 방지
+      if (scriptLoadedRef.current || document.getElementById("naver-maps-script")) {
+        console.log("ℹ️ 네이버 지도 스크립트가 이미 로드/로딩 중");
+        return;
+      }
+      scriptLoadedRef.current = true;
+
       console.log("📡 네이버 지도 API 스크립트 로드 시작");
 
       const script = document.createElement("script");
+      script.id = "naver-maps-script";
       
       // 콜백 함수 등록
       (window as any).__naverMapOnLoad = () => {
@@ -163,8 +322,10 @@ export function DetailMap({ tour, className }: DetailMapProps) {
       };
 
       // 공식 문서 기준 파라미터는 ncpKeyId
+      // Geocoder 서브 모듈 추가: 주소를 좌표로 변환하기 위해 필요
       // 참고: https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Getting-Started.html
-      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&callback=__naverMapOnLoad`;
+      // 참고: https://navermaps.github.io/maps.js.ncp/docs/tutorial-Geocoder-Geocoding.html
+      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&submodules=geocoder&callback=__naverMapOnLoad`;
       script.async = true;
 
       // 인증 실패 콜백
@@ -245,6 +406,18 @@ export function DetailMap({ tour, className }: DetailMapProps) {
 
       if (window.naver?.maps) {
         console.log("✅ window.naver.maps 준비 완료");
+        
+        // 좌표가 유효하지 않으면 Geocoder 시도
+        if (!valid || !isInKoreaRange) {
+          const fullAddress = [tour.addr1, tour.addr2].filter(Boolean).join(" ");
+          if (fullAddress) {
+            console.log("📍 주소 기반 좌표 변환 시작:", fullAddress);
+            geocodeAddress(fullAddress);
+            return;
+          }
+        }
+        
+        // 좌표가 유효하면 지도 초기화 진행
         waitForContainer();
         return;
       }
@@ -266,6 +439,18 @@ export function DetailMap({ tour, className }: DetailMapProps) {
         if (window.naver?.maps) {
           clearInterval(checkInterval);
           console.log(`✅ window.naver.maps 준비 완료 (${attempts * 50}ms 후)`);
+          
+          // 좌표가 유효하지 않으면 Geocoder 시도
+          if (!valid || !isInKoreaRange) {
+            const fullAddress = [tour.addr1, tour.addr2].filter(Boolean).join(" ");
+            if (fullAddress) {
+              console.log("📍 주소 기반 좌표 변환 시작:", fullAddress);
+              geocodeAddress(fullAddress);
+              return;
+            }
+          }
+          
+          // 좌표가 유효하면 지도 초기화 진행
           waitForContainer();
         } else if (attempts >= maxAttempts) {
           clearInterval(checkInterval);
@@ -335,11 +520,18 @@ export function DetailMap({ tour, className }: DetailMapProps) {
         return;
       }
 
+      // 최종 좌표 확인
+      const coordinates = finalCoordinates || (valid && isInKoreaRange ? { lng, lat } : null);
+      if (!coordinates) {
+        console.error("❌ 지도 초기화 실패: 유효한 좌표 없음");
+        return;
+      }
+
       try {
-        console.log("🗺️ 지도 초기화 시작:", { lng, lat });
+        console.log("🗺️ 지도 초기화 시작:", coordinates);
 
         // 중심 좌표
-        const center = new window.naver.maps.LatLng(lat, lng);
+        const center = new window.naver.maps.LatLng(coordinates.lat, coordinates.lng);
 
         // 지도 생성
         const map = new window.naver.maps.Map(mapRef.current, {
@@ -372,9 +564,21 @@ export function DetailMap({ tour, className }: DetailMapProps) {
       }
     }
 
+    // 스크립트/맵 로드 트리거
+    if (typeof window !== "undefined") {
+      if (window.naver?.maps) {
+        waitForNaverMaps();
+      } else {
+        loadNaverMapScript();
+      }
+    }
+
     // cleanup
     return () => {
       console.log("🧹 DetailMap cleanup");
+      // contentid가 변경되면 ref 초기화
+      scriptLoadedRef.current = false;
+      geocodingAttemptedRef.current = false;
       if (markerRef.current) {
         markerRef.current.setMap(null);
         markerRef.current = null;
@@ -383,20 +587,25 @@ export function DetailMap({ tour, className }: DetailMapProps) {
         mapInstanceRef.current = null;
       }
     };
-  }, [tour.contentid, tour.title, tour.mapx, tour.mapy, lng, lat, valid, isInKoreaRange]);
+    // 🔥 무한 루프 해결: useMemo로 메모이제이션된 값만 의존성에 추가
+    // tour.contentid가 변경되면 전체 재초기화
+    // valid, isInKoreaRange는 이미 useMemo로 메모이제이션되어 안정적
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tour.contentid]);
 
   /**
    * 길찾기 버튼 핸들러
    * 네이버 지도 길찾기 페이지로 이동
    */
   const handleDirections = () => {
-    if (!valid) {
+    const coordinates = useCoordinates;
+    if (!coordinates) {
       console.warn("⚠️ 유효하지 않은 좌표로 길찾기 불가");
       return;
     }
 
     // 네이버 지도 길찾기 URL (도보 경로)
-    const directionsUrl = `https://map.naver.com/v5/directions/-/-/-/-/walk?c=${lng},${lat},15,0,0,0,dh`;
+    const directionsUrl = `https://map.naver.com/v5/directions/-/-/-/-/walk?c=${coordinates.lng},${coordinates.lat},15,0,0,0,dh`;
     
     console.log("🚗 길찾기 URL:", directionsUrl);
     window.open(directionsUrl, "_blank", "noopener,noreferrer");
@@ -406,19 +615,25 @@ export function DetailMap({ tour, className }: DetailMapProps) {
    * 좌표 복사 핸들러
    */
   const handleCopyCoordinates = async () => {
-    const coordinates = `${lat}, ${lng}`;
+    const coordinates = useCoordinates;
+    if (!coordinates) {
+      console.warn("⚠️ 복사할 좌표가 없습니다.");
+      return;
+    }
+    
+    const coordinatesText = `${coordinates.lat}, ${coordinates.lng}`;
     
     try {
-      await navigator.clipboard.writeText(coordinates);
-      console.log("✅ 좌표 복사 완료:", coordinates);
+      await navigator.clipboard.writeText(coordinatesText);
+      console.log("✅ 좌표 복사 완료:", coordinatesText);
       // 토스트 메시지는 sonner가 이미 설정되어 있으므로 여기서는 로그만
     } catch (error) {
       console.error("❌ 좌표 복사 실패:", error);
     }
   };
 
-  // 좌표가 유효하지 않은 경우
-  if (!valid) {
+  // 좌표가 유효하지 않고 Geocoder도 실패한 경우
+  if (!useCoordinates && geocodingState !== 'loading') {
     const fullAddress = [tour.addr1, tour.addr2].filter(Boolean).join(" ");
     const hasAddress = !!fullAddress;
 
@@ -521,29 +736,40 @@ export function DetailMap({ tour, className }: DetailMapProps) {
           <div className="flex h-[400px] items-center justify-center rounded-lg border bg-muted">
             <div className="text-center">
               <div className="mx-auto mb-2 size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-              <p className="text-sm text-muted-foreground">지도를 불러오는 중...</p>
+              <p className="text-sm text-muted-foreground">
+                {geocodingState === 'loading' 
+                  ? '주소를 좌표로 변환하는 중...' 
+                  : '지도를 불러오는 중...'}
+              </p>
             </div>
           </div>
         )}
       </div>
 
       {/* 좌표 정보 */}
-      <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-3 text-sm">
-        <div className="flex items-center gap-2">
-          <MapPin className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground">좌표:</span>
-          <span className="font-mono">{lat.toFixed(6)}, {lng.toFixed(6)}</span>
+      {useCoordinates && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-3 text-sm">
+          <div className="flex items-center gap-2">
+            <MapPin className="size-4 text-muted-foreground" />
+            <span className="text-muted-foreground">좌표:</span>
+            <span className="font-mono">
+              {useCoordinates.lat.toFixed(6)}, {useCoordinates.lng.toFixed(6)}
+            </span>
+            {geocodingState === 'success' && (
+              <span className="text-xs text-muted-foreground">(주소 기반 변환)</span>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCopyCoordinates}
+            className="gap-2"
+          >
+            <Copy className="size-4" />
+            복사
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCopyCoordinates}
-          className="gap-2"
-        >
-          <Copy className="size-4" />
-          복사
-        </Button>
-      </div>
+      )}
 
       {/* 주소 정보 */}
       {tour.addr1 && (
