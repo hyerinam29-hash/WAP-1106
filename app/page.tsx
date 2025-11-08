@@ -188,6 +188,20 @@ export default function HomePage() {
     loadToursByFilter(1);
   };
 
+  // 정렬 변경 핸들러
+  const handleSortChange = (newSortBy: "latest" | "name") => {
+    console.log("🔄 정렬 변경:", newSortBy);
+    setSortBy(newSortBy);
+    setCurrentPage(1); // 페이지 1로 리셋
+    
+    // 현재 모드에 따라 데이터 다시 로드
+    if (searchMode === "search" && keyword) {
+      loadToursBySearch(keyword, 1);
+    } else {
+      loadToursByFilter(1);
+    }
+  };
+
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
     console.log("📄 페이지 변경:", page);
@@ -249,9 +263,11 @@ export default function HomePage() {
                 <div className="text-sm font-medium">정렬</div>
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => setSortBy("latest")}
+                    onClick={() => handleSortChange("latest")}
+                    disabled={isLoading}
                     className={cn(
                       "text-left px-3 py-2 rounded-md text-sm transition-colors",
+                      "disabled:opacity-50 disabled:cursor-not-allowed",
                       sortBy === "latest"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted hover:bg-muted/80"
@@ -260,9 +276,11 @@ export default function HomePage() {
                     최신순
                   </button>
                   <button
-                    onClick={() => setSortBy("name")}
+                    onClick={() => handleSortChange("name")}
+                    disabled={isLoading}
                     className={cn(
                       "text-left px-3 py-2 rounded-md text-sm transition-colors",
+                      "disabled:opacity-50 disabled:cursor-not-allowed",
                       sortBy === "name"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted hover:bg-muted/80"
