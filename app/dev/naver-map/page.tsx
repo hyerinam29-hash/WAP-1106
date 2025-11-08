@@ -30,7 +30,14 @@ export default function NaverMapTestPage() {
   useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
 
+    console.group("🗺️ 네이버 지도 API 디버깅");
+    console.log("환경 변수 Client ID:", clientId);
+    console.log("현재 도메인:", window.location.origin);
+    console.log("전체 URL:", window.location.href);
+
     if (!clientId) {
+      console.error("❌ Client ID 환경 변수 없음");
+      console.groupEnd();
       setIsLoading(false);
       setError(
         [
@@ -44,6 +51,8 @@ export default function NaverMapTestPage() {
       );
       return;
     }
+
+    console.log("✅ Client ID 확인 완료");
 
     // 이미 로드된 경우 재사용
     if (window.naver?.maps && mapRef.current) {
@@ -61,47 +70,100 @@ export default function NaverMapTestPage() {
 
     // 인증 실패 훅 (공식 제공)
     window.navermap_authFailure = () => {
+      console.error("❌ navermap_authFailure 콜백 호출됨");
+      console.error("인증 실패 원인: NCP 콘솔에서 도메인/키/서비스 설정 문제");
+      console.groupEnd();
+      
       setIsLoading(false);
       const origin =
         typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
       setError(
         [
-          "navermap_authFailure: 인증 실패 감지 (NCP Key/도메인 설정 확인)",
+          "❌ navermap_authFailure: 인증 실패 감지",
           "",
-          "확인 사항:",
+          "현재 설정:",
           `- Client ID: ${clientId}`,
-          `- 서비스 URL 등록: ${origin}`,
-          "- Maps API 서비스 활성화 여부",
+          `- 파라미터: ${paramName}`,
+          `- 현재 도메인: ${origin}`,
+          `- 스크립트 URL: ${script.src}`,
           "",
-          "네이버 클라우드 플랫폼 콘솔에서 Application > API 설정 탭에서 서비스 URL을 추가하고 저장하세요.",
+          "해결 방법:",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "",
+          "1️⃣ 네이버 클라우드 플랫폼 콘솔 접속:",
+          "   https://console.ncloud.com/",
+          "",
+          "2️⃣ Application 선택:",
+          "   AI·Application Service → AI·NAVER API → Application",
+          "   → Client ID 'jz6mn8mwj2' 선택",
+          "",
+          "3️⃣ 'API 설정' 탭 클릭",
+          "",
+          "4️⃣ '서비스 URL' 섹션:",
+          "   - '추가' 버튼 클릭",
+          `   - 정확히 입력: ${origin}`,
+          "   - 슬래시(/) 없이, 포트 번호(:3000) 포함",
+          "",
+          "5️⃣ 'Web Dynamic Map' 또는 'Maps API' 서비스:",
+          "   - 활성화 확인 (토글 ON)",
+          "",
+          "6️⃣ '저장' 버튼 클릭 (중요!)",
+          "",
+          "7️⃣ 브라우저에서 하드 새로고침 (Ctrl+Shift+R)",
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "",
+          "💡 추가 확인:",
+          `- 브라우저 주소창: ${origin}`,
+          "- localhost와 127.0.0.1은 다른 도메인입니다",
+          "- 콘솔 개발자 도구(F12) → Network 탭에서",
+          "  'maps.js' 요청의 Status 코드 확인",
         ].join("\n")
       );
     };
 
     // 콜백에서 지도 초기화
     window.initMap = () => {
+      console.log("✅ initMap 콜백 호출됨");
+      
       if (!mapRef.current || !window.naver?.maps) {
+        console.error("❌ 지도 컨테이너 또는 API 없음");
+        console.groupEnd();
         setError("지도 컨테이너 또는 네이버 지도 API를 찾을 수 없습니다.");
         setIsLoading(false);
         return;
       }
+      
       try {
+        console.log("🗺️ 지도 초기화 시작...");
         new window.naver.maps.Map(mapRef.current, {
           center: new window.naver.maps.LatLng(37.3595704, 127.105399),
           zoom: 10,
         });
+        console.log("✅ 지도 초기화 성공!");
+        console.groupEnd();
         setIsLoading(false);
       } catch (e) {
+        console.error("❌ 지도 초기화 실패:", e);
+        console.groupEnd();
         setError("네이버 지도 초기화 중 오류가 발생했습니다.");
         setIsLoading(false);
       }
     };
 
-    // 스크립트 동적 로드 (공식 문서: ncpKeyId + callback)
+    // 스크립트 동적 로드
+    // 공식 문서: https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Getting-Started.html
+    // 최신 파라미터: ncpKeyId (구버전: ncpClientId)
+    const useNewParam = true; // ncpKeyId 사용 (false로 변경하면 ncpClientId 시도)
+    const paramName = useNewParam ? "ncpKeyId" : "ncpClientId";
+    
     const script = document.createElement("script");
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&callback=initMap`;
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?${paramName}=${clientId}&callback=initMap`;
     script.async = true;
     script.defer = true;
+    
+    console.log("📡 스크립트 로드 URL:", script.src);
+    console.log(`📌 사용 파라미터: ${paramName}`);
     
     // 401 에러 감지를 위한 fetch 요청 (스크립트 로드 전 인증 확인)
     const authUrl = `https://oapi.map.naver.com/v3/auth?ncpKeyId=${clientId}&url=${encodeURIComponent(
@@ -167,28 +229,44 @@ export default function NaverMapTestPage() {
         // fetch 실패는 무시 (스크립트 로드가 정상이면 문제없음)
       });
     
-    script.onerror = () => {
+    script.onerror = (error) => {
+      console.error("❌ 스크립트 로드 실패:", error);
+      console.error("스크립트 URL:", script.src);
+      console.groupEnd();
+      
       setIsLoading(false);
       const origin =
         typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
       setError(
         [
-          "네이버 지도 스크립트 로드에 실패했습니다.",
+          "❌ 네이버 지도 스크립트 로드 실패",
           "",
           "확인 사항:",
           "- 인터넷 연결 상태",
           "- Client ID 유효성",
           "- 서비스 URL(도메인) 등록 여부",
+          "- 방화벽/보안 프로그램 차단 여부",
           "",
           `현재 도메인: ${origin}`,
           `Client ID: ${clientId}`,
+          `스크립트 URL: ${script.src}`,
         ].join("\n")
       );
     };
+    
+    script.onload = () => {
+      console.log("✅ 스크립트 파일 로드 완료");
+      console.log("⏳ initMap 콜백 대기 중...");
+      // initMap이 호출되거나 navermap_authFailure가 호출됨
+    };
+    
     document.head.appendChild(script);
+    console.log("📤 스크립트 태그 추가 완료");
 
     // cleanup: 스크립트/전역 콜백은 유지 (다른 페이지 전환 용이)
-    return () => {};
+    return () => {
+      console.groupEnd();
+    };
   }, []);
 
   return (

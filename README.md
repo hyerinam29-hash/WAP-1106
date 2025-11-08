@@ -301,6 +301,27 @@ NEXT_PUBLIC_NAVER_MAP_CLIENT_ID="발급받은_Client_ID"
 - **navermap_authFailure 콜백**: 인증 실패, 위 단계를 다시 확인
 - **스크립트 로드 실패**: 네트워크 문제 또는 Client ID 오류
 
+**디버깅 방법:**
+
+1. 브라우저 개발자 도구(F12) 열기
+2. Console 탭에서 "🗺️ 네이버 지도 API 디버깅" 로그 확인
+3. Network 탭에서 `maps.js` 요청의 Status 코드 확인:
+   - 200 OK: 스크립트 로드 성공, initMap 콜백 대기
+   - 401 Unauthorized: 도메인 미등록 또는 키 불일치
+   - 403 Forbidden: Maps API 서비스 비활성화
+   - 404 Not Found: Client ID 오류
+
+**흔한 실수:**
+
+- ❌ 서비스 URL에 슬래시(`/`) 포함: `http://localhost:3000/`
+- ✅ 올바른 형식: `http://localhost:3000`
+- ❌ 포트 번호 누락: `http://localhost`
+- ✅ 포트 번호 포함: `http://localhost:3000`
+- ❌ 콘솔에서 저장하지 않음
+- ✅ 반드시 "저장" 버튼 클릭
+- ❌ localhost 대신 127.0.0.1로 접속
+- ✅ 브라우저 주소창과 등록된 URL 정확히 일치
+
 #### 7. Cursor MCP 설정 (선택사항)
 
 > Cursor AI를 사용하는 경우, Supabase MCP 서버를 설정하면 AI가 데이터베이스를 직접 조회하고 관리할 수 있습니다.
