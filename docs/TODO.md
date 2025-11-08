@@ -8,7 +8,7 @@
 
 **Phase 1: 기본 구조 & 공통 설정** - **100% 완료** ✅
 
-모든 기본 설정과 공통 기능이 완료되었습니다.
+모든 기본 설정과 공통 기능이 완료되었습니다. 좌표 변환 유틸리티와 디버깅 로그가 추가로 개선되었습니다.
 
 #### 생성된 주요 파일들
 
@@ -23,10 +23,13 @@
 - `components/ui/skeleton-card.tsx` - 스켈레톤 UI (Skeleton, SkeletonCard, SkeletonList)
 - `components/ui/error-message.tsx` - 에러 메시지 (ErrorMessage, NetworkError, ApiError)
 - `components/ui/empty-state.tsx` - 빈 상태 메시지 (EmptyState, NoSearchResults, NoFilterResults)
+- `components/Navbar.tsx` - 헤더 네비게이션 바 (로고, 로그인 버튼, 언어 선택)
 
 **유틸리티:**
 - `lib/utils/env-check.ts` - 환경 변수 확인 유틸리티
 - `app/env-check/page.tsx` - 환경 변수 설정 상태 확인 페이지
+- `lib/utils/coordinates.ts` - 좌표 변환 유틸리티 (KATEC → WGS84, 한국 좌표 범위 검증)
+- `lib/utils/region-coordinates.ts` - 지역별 중심 좌표 설정
 
 **환경 설정:**
 - ✅ Next.js 15.5.6 + React 19 + TypeScript
@@ -59,9 +62,9 @@ Phase 3 추가 작업:
 ## Phase 1: 기본 구조 & 공통 설정 ✅ **완료**
 
 **완료 날짜:** 2025년 1월  
-**완료율:** 100% (32/32 항목)
+**완료율:** 100% (41/41 항목)
 
-이 Phase에서는 프로젝트의 기본 구조와 공통 기능을 모두 구현했습니다.
+이 Phase에서는 프로젝트의 기본 구조와 공통 기능을 모두 구현했습니다. 좌표 변환 유틸리티가 개선되어 다양한 좌표 스케일을 자동으로 감지하고 변환할 수 있습니다.
 
 ### 1.1 프로젝트 환경 설정
 - [x] Next.js 15.5.6 프로젝트 셋업
@@ -115,6 +118,21 @@ Phase 3 추가 작업:
 - [x] `components/ui/skeleton-card.tsx` - 스켈레톤 UI
 - [x] `components/ui/error-message.tsx` - 에러 메시지
 - [x] `components/ui/empty-state.tsx` - 빈 상태 메시지
+- [x] `components/Navbar.tsx` - 헤더 네비게이션 바
+  - [x] 로고 (홈 링크)
+  - [x] 로그인 버튼 (Clerk 인증 연동)
+  - [x] 언어 선택 드롭다운 (7개 언어 지원: 한국어, 영어, 중국어, 일본어, 스페인어, 프랑스어, 독일어)
+  - [x] Sticky 헤더 (스크롤 시 상단 고정)
+  - [x] 반응형 디자인 (모바일/태블릿/데스크톱)
+
+### 1.6 유틸리티 함수
+- [x] `lib/utils/coordinates.ts` - 좌표 변환 유틸리티
+  - [x] `toWgs84FromKTO()` - 한국관광공사 좌표를 WGS84로 변환
+  - [x] 한국 좌표 범위 상수 정의 (KOREA_LAT_MIN/MAX, KOREA_LNG_MIN/MAX)
+  - [x] 다양한 좌표 스케일 자동 감지 및 변환 로직
+  - [x] 한국 좌표 범위 검증 로직
+  - [x] 상세한 디버깅 로그 (console.group 사용)
+- [x] `lib/utils/region-coordinates.ts` - 지역별 중심 좌표 설정
 
 ---
 
@@ -262,6 +280,15 @@ Phase 1의 기반 위에 홈페이지 기능을 구현합니다.
     - [x] 네이버 지도 연동 (새 탭으로 길찾기)
     - [x] 좌표 전달 (`https://map.naver.com/v5/directions/-/-/-/-/walk?c=${lng},${lat},15,0,0,0,dh`)
   - [x] 좌표 정보 표시 (선택 사항)
+  - [x] 좌표 변환 로직 개선
+    - [x] `lib/utils/coordinates.ts` - 한국 좌표 범위 상수 추가
+    - [x] 다양한 좌표 스케일 자동 감지 및 변환
+    - [x] 한국 좌표 범위 검증 로직 강화
+  - [x] 디버깅 로그 추가
+    - [x] 원본 좌표 값 상세 로깅
+    - [x] 변환 결과 상세 로깅
+    - [x] 한국 좌표 범위 검증 로깅
+    - [x] 에러 케이스별 상세 로깅
 
 ### 3.6 공유하기 기능 (MVP 2.4.5)
 - [x] `components/tour-detail/share-button.tsx` 생성
@@ -303,26 +330,27 @@ Phase 1의 기반 위에 홈페이지 기능을 구현합니다.
 
 ### 4.1 데이터베이스 설정
 - [x] `users` 테이블 생성 (완료)
-- [ ] `bookmarks` 테이블 생성
-  - [ ] `id` (UUID, Primary Key)
-  - [ ] `user_id` (UUID, Foreign Key → users.id)
-  - [ ] `content_id` (TEXT, 한국관광공사 contentid)
-  - [ ] `created_at` (TIMESTAMP)
-  - [ ] UNIQUE 제약 (user_id, content_id)
-- [ ] RLS 정책 설정
-  - [ ] 개발 환경: RLS 비활성화
-  - [ ] 프로덕션: 사용자별 접근 제한
-- [ ] 인덱스 생성
-  - [ ] `idx_bookmarks_user_id`
-  - [ ] `idx_bookmarks_content_id`
+- [x] `bookmarks` 테이블 생성
+  - [x] `id` (UUID, Primary Key)
+  - [x] `user_id` (UUID, Foreign Key → users.id)
+  - [x] `content_id` (TEXT, 한국관광공사 contentid)
+  - [x] `created_at` (TIMESTAMP)
+  - [x] UNIQUE 제약 (user_id, content_id)
+- [x] RLS 정책 설정
+  - [x] 개발 환경: RLS 비활성화
+  - [ ] 프로덕션: 사용자별 접근 제한 (향후 구현)
+- [x] 인덱스 생성
+  - [x] `idx_bookmarks_user_id`
+  - [x] `idx_bookmarks_content_id`
+  - [x] `idx_bookmarks_created_at` (정렬 성능 향상)
 
 ### 4.2 Supabase API 함수
-- [ ] `lib/api/supabase-api.ts` 생성
-  - [ ] `addBookmark(userId, contentId)` - 북마크 추가
-  - [ ] `removeBookmark(userId, contentId)` - 북마크 제거
-  - [ ] `getBookmarks(userId)` - 북마크 목록 조회
-  - [ ] `isBookmarked(userId, contentId)` - 북마크 여부 확인
-  - [ ] 에러 핸들링
+- [x] `lib/api/supabase-api.ts` 생성
+  - [x] `addBookmark(userId, contentId)` - 북마크 추가
+  - [x] `removeBookmark(userId, contentId)` - 북마크 제거
+  - [x] `getBookmarks(userId)` - 북마크 목록 조회
+  - [x] `isBookmarked(userId, contentId)` - 북마크 여부 확인
+  - [x] 에러 핸들링
 
 ### 4.3 북마크 버튼 컴포넌트
 - [ ] `components/bookmarks/bookmark-button.tsx` 생성
