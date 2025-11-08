@@ -240,21 +240,66 @@ cp .env.example .env
 
 **6-5. 네이버 지도 API 환경 변수 설정**
 
+> **⚠️ 중요**: 네이버 지도 API는 도메인 기반 인증을 사용합니다. 401 Unauthorized 에러가 발생하면 아래 단계를 정확히 따라주세요.
+
+**Step 1: Client ID 발급**
+
 1. [네이버 클라우드 플랫폼 콘솔](https://console.ncloud.com/) 접속
 2. **AI·Application Service** → **AI·NAVER API** → **Application 등록 정보**
 3. Application 선택 또는 새로 생성
-4. **Client ID** 복사
-5. `.env` 파일에 다음 추가:
-   ```env
-   NEXT_PUBLIC_NAVER_MAP_CLIENT_ID="<Client ID>"
-   ```
-6. **API 설정** 탭에서 **서비스 URL**에 다음 추가:
+4. **Client ID** 복사 (예: `jz6mn8mwj2`)
+
+**Step 2: 환경 변수 설정**
+
+`.env.local` 파일에 다음 추가:
+```env
+NEXT_PUBLIC_NAVER_MAP_CLIENT_ID="발급받은_Client_ID"
+```
+
+**Step 3: 서비스 URL 등록 (가장 중요!)**
+
+1. 네이버 클라우드 플랫폼 콘솔에서 Application 선택
+2. **"API 설정"** 탭 클릭
+3. **"서비스 URL"** 섹션에서 **"추가"** 버튼 클릭
+4. 다음 URL을 정확히 입력:
    - 개발 환경: `http://localhost:3000`
    - 배포 환경: `https://your-domain.com` (배포 후 추가)
-7. **Maps API 서비스** 활성화 확인
-8. 저장 후 개발 서버 재시작
+5. **⚠️ 주의사항:**
+   - 포트 번호까지 정확히 일치해야 함 (`:3000` 포함)
+   - `http://`와 `https://`는 별도로 등록 필요
+   - `localhost`와 `127.0.0.1`은 별도로 등록 필요
+   - 마지막 슬래시(`/`)는 제외
 
-> **⚠️ 중요**: 네이버 지도 API는 도메인 기반 인증을 사용합니다. 새로운 도메인에서 사용하려면 콘솔에 추가 등록해야 합니다.
+**Step 4: Maps API 서비스 활성화**
+
+1. 같은 **"API 설정"** 탭에서
+2. **"Maps API"** 서비스가 **활성화**되어 있는지 확인
+3. 비활성화되어 있다면 활성화
+
+**Step 5: 저장 및 재시작**
+
+1. 콘솔에서 **"저장"** 버튼 클릭
+2. 개발 서버 재시작:
+   ```bash
+   # 서버 중지 (Ctrl+C) 후
+   pnpm dev
+   ```
+3. 브라우저에서 **하드 새로고침** (Ctrl+Shift+R)
+
+**Step 6: 테스트**
+
+1. 브라우저에서 `/dev/naver-map` 경로 접속
+2. 지도가 표시되면 성공!
+3. 401 에러가 계속 발생하면:
+   - 브라우저 개발자 도구(F12) → Network 탭에서 `maps.js` 요청 확인
+   - 콘솔에서 에러 메시지 확인
+   - 서비스 URL이 정확히 일치하는지 재확인
+
+**문제 해결:**
+
+- **401 Unauthorized 에러**: 서비스 URL이 등록되지 않았거나 Client ID가 잘못됨
+- **navermap_authFailure 콜백**: 인증 실패, 위 단계를 다시 확인
+- **스크립트 로드 실패**: 네트워크 문제 또는 Client ID 오류
 
 #### 7. Cursor MCP 설정 (선택사항)
 
