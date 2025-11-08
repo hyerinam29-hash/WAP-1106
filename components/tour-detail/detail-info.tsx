@@ -29,6 +29,7 @@ import Image from "next/image";
 import { Copy, Phone, ExternalLink, MapPin, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShareButton } from "@/components/tour-detail/share-button";
+import { BookmarkButton } from "@/components/bookmarks/bookmark-button";
 import type { TourDetail } from "@/lib/types/tour";
 import { CONTENT_TYPE_NAMES } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
@@ -122,13 +123,20 @@ export function DetailInfo({ tour, shareUrl, className }: DetailInfoProps) {
       <div>
         <div className="mb-2 flex items-start justify-between gap-4">
           <h1 className="flex-1 text-3xl font-bold lg:text-4xl">{tour.title}</h1>
-          {/* 공유하기 버튼 */}
-          <ShareButton
-            url={urlToShare}
-            size="sm"
-            variant="outline"
-            className="shrink-0"
-          />
+          {/* 공유하기 및 북마크 버튼 */}
+          <div className="flex shrink-0 gap-2">
+            <BookmarkButton
+              contentId={tour.contentid}
+              title={tour.title}
+              size="sm"
+              variant="outline"
+            />
+            <ShareButton
+              url={urlToShare}
+              size="sm"
+              variant="outline"
+            />
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">

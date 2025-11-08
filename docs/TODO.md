@@ -25,6 +25,7 @@
 - `components/ui/error-message.tsx` - 에러 메시지 (ErrorMessage, NetworkError, ApiError)
 - `components/ui/empty-state.tsx` - 빈 상태 메시지 (EmptyState, NoSearchResults, NoFilterResults)
 - `components/Navbar.tsx` - 헤더 네비게이션 바 (로고, 로그인 버튼, 언어 선택)
+- `components/bookmarks/bookmark-button.tsx` - 북마크 버튼 컴포넌트 (별 아이콘, 로그인 유도, 상태 관리)
 
 **유틸리티:**
 - `lib/utils/env-check.ts` - 환경 변수 확인 유틸리티
@@ -48,7 +49,7 @@
 
 - Phase 2: 홈페이지 (`/`) - 관광지 목록 (약 60% 완료)
 - Phase 3: 상세페이지 (`/places/[contentId]`) - 대부분 완료 (지도 무한 루프 해결 완료)
-- Phase 4: 북마크 기능 - 데이터베이스 및 API 함수 완료 (약 50% 완료)
+- Phase 4: 북마크 기능 - 데이터베이스, API 함수, 북마크 버튼 완료 (약 75% 완료)
 
 ### 📋 다음 단계
 
@@ -339,9 +340,9 @@ Phase 1의 기반 위에 홈페이지 기능을 구현합니다.
 ## Phase 4: 북마크 기능 (선택 사항) 🚧 **진행 중**
 
 **시작 날짜:** 2025년 1월  
-**완료율:** 약 50% (2/4 항목)
+**완료율:** 약 75% (3/4 항목)
 
-Phase 4에서는 사용자가 관광지를 북마크하고 관리할 수 있는 기능을 구현합니다. 데이터베이스 설정과 API 함수는 완료되었으며, UI 컴포넌트와 페이지 구현이 남아있습니다.
+Phase 4에서는 사용자가 관광지를 북마크하고 관리할 수 있는 기능을 구현합니다. 데이터베이스 설정, API 함수, 북마크 버튼 컴포넌트는 완료되었으며, 북마크 목록 페이지 구현이 남아있습니다.
 
 ### 4.1 데이터베이스 설정
 - [x] `users` 테이블 생성 (완료)
@@ -380,15 +381,25 @@ Phase 4에서는 사용자가 관광지를 북마크하고 관리할 수 있는 
     - [x] Service Role 클라이언트 사용 (RLS 우회)
 
 ### 4.3 북마크 버튼 컴포넌트
-- [ ] `components/bookmarks/bookmark-button.tsx` 생성
-  - [ ] 별 아이콘 (채워짐/비어있음)
-  - [ ] 클릭 시 북마크 추가/제거
-  - [ ] 로딩 상태 표시
-  - [ ] 인증 확인
-  - [ ] 로그인하지 않은 경우
-    - [ ] 로그인 유도 또는
-    - [ ] localStorage 임시 저장
-  - [ ] 상세페이지에 버튼 추가
+- [x] `components/bookmarks/bookmark-button.tsx` 생성
+  - [x] 별 아이콘 (채워짐/비어있음)
+    - [x] lucide-react Star 아이콘 사용
+    - [x] 북마크 상태에 따라 fill-yellow-400 스타일 적용
+  - [x] 클릭 시 북마크 추가/제거
+    - [x] addBookmark, removeBookmark API 함수 연동
+    - [x] 북마크 상태 실시간 업데이트
+  - [x] 로딩 상태 표시
+    - [x] Loader2 아이콘으로 스피너 표시
+    - [x] 북마크 확인 중 및 처리 중 상태 관리
+  - [x] 인증 확인
+    - [x] Clerk useUser, useAuth 훅 사용
+    - [x] Supabase user ID 조회 (clerk_id로 조회)
+  - [x] 로그인하지 않은 경우
+    - [x] SignInButton으로 로그인 유도
+    - [x] 로그인 필요 토스트 메시지
+  - [x] 상세페이지에 버튼 추가
+    - [x] DetailInfo 컴포넌트에 북마크 버튼 추가
+    - [x] 공유하기 버튼과 함께 표시
 
 ### 4.4 북마크 목록 페이지
 - [ ] `app/bookmarks/page.tsx` 생성
