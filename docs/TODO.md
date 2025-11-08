@@ -330,27 +330,27 @@ Phase 1의 기반 위에 홈페이지 기능을 구현합니다.
 
 ### 4.1 데이터베이스 설정
 - [x] `users` 테이블 생성 (완료)
-- [x] `bookmarks` 테이블 생성
-  - [x] `id` (UUID, Primary Key)
-  - [x] `user_id` (UUID, Foreign Key → users.id)
-  - [x] `content_id` (TEXT, 한국관광공사 contentid)
-  - [x] `created_at` (TIMESTAMP)
-  - [x] UNIQUE 제약 (user_id, content_id)
-- [x] RLS 정책 설정
-  - [x] 개발 환경: RLS 비활성화
+- [ ] `bookmarks` 테이블 생성
+  - [ ] `id` (UUID, Primary Key)
+  - [ ] `user_id` (UUID, Foreign Key → users.id)
+  - [ ] `content_id` (TEXT, 한국관광공사 contentid)
+  - [ ] `created_at` (TIMESTAMP)
+  - [ ] UNIQUE 제약 (user_id, content_id)
+- [ ] RLS 정책 설정
+  - [ ] 개발 환경: RLS 비활성화
   - [ ] 프로덕션: 사용자별 접근 제한 (향후 구현)
-- [x] 인덱스 생성
-  - [x] `idx_bookmarks_user_id`
-  - [x] `idx_bookmarks_content_id`
-  - [x] `idx_bookmarks_created_at` (정렬 성능 향상)
+- [ ] 인덱스 생성
+  - [ ] `idx_bookmarks_user_id`
+  - [ ] `idx_bookmarks_content_id`
+  - [ ] `idx_bookmarks_created_at` (정렬 성능 향상)
 
 ### 4.2 Supabase API 함수
-- [x] `lib/api/supabase-api.ts` 생성
-  - [x] `addBookmark(userId, contentId)` - 북마크 추가
-  - [x] `removeBookmark(userId, contentId)` - 북마크 제거
-  - [x] `getBookmarks(userId)` - 북마크 목록 조회
-  - [x] `isBookmarked(userId, contentId)` - 북마크 여부 확인
-  - [x] 에러 핸들링
+- [ ] `lib/api/supabase-api.ts` 생성
+  - [ ] `addBookmark(userId, contentId)` - 북마크 추가
+  - [ ] `removeBookmark(userId, contentId)` - 북마크 제거
+  - [ ] `getBookmarks(userId)` - 북마크 목록 조회
+  - [ ] `isBookmarked(userId, contentId)` - 북마크 여부 확인
+  - [ ] 에러 핸들링
 
 ### 4.3 북마크 버튼 컴포넌트
 - [ ] `components/bookmarks/bookmark-button.tsx` 생성
