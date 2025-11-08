@@ -22,16 +22,19 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Share2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { ButtonProps } from "@/components/ui/button";
+import type { VariantProps } from "class-variance-authority";
+import { buttonVariants } from "@/components/ui/button";
 
 /**
  * 공유하기 버튼 Props
  */
-interface ShareButtonProps extends Omit<ButtonProps, "onClick"> {
+interface ShareButtonProps
+  extends Omit<React.ComponentProps<"button">, "onClick">,
+    VariantProps<typeof buttonVariants> {
   /** 공유할 URL (선택 사항, 없으면 현재 페이지 URL 사용) */
   url?: string;
   /** 공유 시 표시할 제목 (선택 사항) */
