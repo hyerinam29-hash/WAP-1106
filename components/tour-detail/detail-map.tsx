@@ -61,28 +61,74 @@ export function DetailMap({ tour, className }: DetailMapProps) {
   const markerRef = useRef<any>(null);
 
   console.group("🗺️ DetailMap 렌더링");
-  console.log("관광지:", {
+  console.log("관광지 기본 정보:", {
     contentId: tour.contentid,
     title: tour.title,
+    addr1: tour.addr1,
+    addr2: tour.addr2,
+  });
+
+  // 원본 좌표 값 상세 로깅
+  console.log("원본 좌표 값:", {
     mapx: tour.mapx,
     mapy: tour.mapy,
-    addr1: tour.addr1,
+    mapxType: typeof tour.mapx,
+    mapyType: typeof tour.mapy,
+    mapxValue: String(tour.mapx),
+    mapyValue: String(tour.mapy),
   });
 
   // 좌표 변환 (KATEC → WGS84)
   const { lng, lat, valid } = toWgs84FromKTO(tour.mapx, tour.mapy);
-  console.log("좌표 변환:", { lng, lat, valid });
+  
+  // 변환 결과 상세 로깅
+  console.log("좌표 변환 결과:", {
+    lng: lng.toFixed(8),
+    lat: lat.toFixed(8),
+    valid,
+    isInKoreaRange: lat >= 33.0 && lat <= 38.6 && lng >= 124.0 && lng <= 132.0,
+  });
+
+  // 한국 좌표 범위 검증
+  const isInKoreaRange = lat >= 33.0 && lat <= 38.6 && lng >= 124.0 && lng <= 132.0;
+  
+  if (!isInKoreaRange && valid) {
+    console.warn("⚠️ 좌표가 한국 범위를 벗어남:", {
+      lat: lat.toFixed(6),
+      lng: lng.toFixed(6),
+      expectedLatRange: "33.0 ~ 38.6",
+      expectedLngRange: "124.0 ~ 132.0",
+    });
+  }
 
   // 좌표가 유효하지 않으면 에러 표시
   if (!valid) {
-    console.warn("⚠️ 유효하지 않은 좌표:", { mapx: tour.mapx, mapy: tour.mapy });
+    console.error("❌ 유효하지 않은 좌표:", {
+      mapx: tour.mapx,
+      mapy: tour.mapy,
+      lng,
+      lat,
+      reason: !Number.isFinite(lat) || !Number.isFinite(lng) 
+        ? "무한대 또는 NaN"
+        : lat === 0 || lng === 0
+        ? "0 값"
+        : "세계 좌표 범위 벗어남",
+    });
   }
 
   useEffect(() => {
-    // 좌표가 유효하지 않으면 지도 초기화하지 않음
-    if (!valid) {
+    // 좌표가 유효하지 않거나 한국 범위를 벗어나면 지도 초기화하지 않음
+    if (!valid || !isInKoreaRange) {
       setIsLoading(false);
-      setError(new Error("관광지 위치 정보가 없습니다."));
+      if (!valid) {
+        setError(new Error("관광지 위치 정보가 없습니다."));
+      } else if (!isInKoreaRange) {
+        setError(
+          new Error(
+            `좌표가 한국 범위를 벗어났습니다. (위도: ${lat.toFixed(6)}, 경도: ${lng.toFixed(6)})`
+          )
+        );
+      }
       console.groupEnd();
       return;
     }
@@ -99,24 +145,8 @@ export function DetailMap({ tour, className }: DetailMapProps) {
 
     console.log("🔑 네이버 지도 API Client ID:", clientId);
 
-    // 이미 스크립트가 로드되어 있는지 확인
-    const existingScript = document.querySelector(
-      `script[src*="oapi.map.naver.com"]`
-    );
-
-    if (existingScript) {
-      console.log("✅ 네이버 지도 API 스크립트 이미 로드됨");
-      // 스크립트가 이미 있으면 바로 지도 초기화
-      if (window.naver?.maps) {
-        initMap();
-      } else {
-        // 스크립트는 있지만 아직 로드 중이면 대기
-        waitForNaverMaps();
-      }
-    } else {
-      // 스크립트가 없으면 새로 로드
-      loadNaverMapScript();
-    }
+    // 인증 실패 플래그 (타임아웃 중단용) - 상위 스코프에 선언
+    let authFailed = false;
 
     /**
      * 네이버 지도 API 스크립트 로드
@@ -132,29 +162,70 @@ export function DetailMap({ tour, className }: DetailMapProps) {
         waitForNaverMaps();
       };
 
+      // 공식 문서 기준 파라미터는 ncpKeyId
+      // 참고: https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Getting-Started.html
       script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&callback=__naverMapOnLoad`;
       script.async = true;
 
       // 인증 실패 콜백
       (window as any).navermap_authFailure = () => {
+        authFailed = true; // 인증 실패 플래그 설정
         console.error("❌ navermap_authFailure: 인증 실패");
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
         setError(
           new Error(
             `네이버 지도 API 인증 실패
 
-확인 사항:
+해결 방법:
+1. 네이버 클라우드 플랫폼 콘솔 접속: https://console.ncloud.com/
+2. AI·Application Service → AI·NAVER API → Application 등록 정보
+3. Client ID 선택 → "API 설정" 탭
+4. "서비스 URL"에 다음 추가:
+   ${currentOrigin}
+5. Maps API 서비스 활성화 확인
+6. 저장 후 페이지 새로고침 (Ctrl+Shift+R)
+
+현재 설정:
 - Client ID: ${clientId}
-- 서비스 URL에 ${typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"} 등록
-- Maps API 서비스 활성화`
+- 현재 도메인: ${currentOrigin}`
           )
         );
         setIsLoading(false);
         console.groupEnd();
       };
 
+      script.onload = () => {
+        console.log("✅ 네이버 지도 API 스크립트 로드 완료");
+        // 스크립트는 로드되었지만 콜백이 실행되지 않으면 타임아웃 체크
+        setTimeout(() => {
+          if (!window.naver?.maps && !authFailed) {
+            console.warn("⚠️ 스크립트는 로드되었지만 콜백이 실행되지 않음 (5초 후 확인)");
+          }
+        }, 5000);
+      };
+
       script.onerror = () => {
         console.error("❌ 네이버 지도 API 스크립트 로드 실패");
-        setError(new Error("지도 API를 불러오는데 실패했습니다."));
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+        setError(
+          new Error(
+            `네이버 지도 API를 불러오는데 실패했습니다.
+
+가능한 원인:
+1. 네트워크 연결 문제
+2. Client ID 오류
+3. 도메인 미등록
+4. Maps API 서비스 비활성화
+
+해결 방법:
+1. 네트워크 연결 확인
+2. 네이버 클라우드 플랫폼 콘솔: https://console.ncloud.com/
+3. Client ID "${clientId}" 확인
+4. 서비스 URL에 ${currentOrigin} 등록
+5. Maps API 서비스 활성화 확인
+6. 페이지 새로고침 (Ctrl+Shift+R)`
+          )
+        );
         setIsLoading(false);
         console.groupEnd();
       };
@@ -166,6 +237,12 @@ export function DetailMap({ tour, className }: DetailMapProps) {
      * window.naver.maps가 준비될 때까지 대기
      */
     function waitForNaverMaps() {
+      // 인증 실패 시 즉시 중단
+      if (authFailed) {
+        console.warn("⚠️ 인증 실패로 인해 대기 중단");
+        return;
+      }
+
       if (window.naver?.maps) {
         console.log("✅ window.naver.maps 준비 완료");
         waitForContainer();
@@ -175,9 +252,16 @@ export function DetailMap({ tour, className }: DetailMapProps) {
       console.warn("⏳ window.naver.maps 대기 중...");
       
       let attempts = 0;
-      const maxAttempts = 60; // 3초
+      const maxAttempts = 120; // 6초로 증가 (50ms * 120)
       const checkInterval = setInterval(() => {
         attempts++;
+        
+        // 인증 실패 시 즉시 중단
+        if (authFailed) {
+          clearInterval(checkInterval);
+          console.warn("⚠️ 인증 실패로 인해 대기 중단");
+          return;
+        }
         
         if (window.naver?.maps) {
           clearInterval(checkInterval);
@@ -185,8 +269,26 @@ export function DetailMap({ tour, className }: DetailMapProps) {
           waitForContainer();
         } else if (attempts >= maxAttempts) {
           clearInterval(checkInterval);
-          console.error("❌ window.naver.maps 타임아웃");
-          setError(new Error("지도 API 로드에 실패했습니다. 페이지를 새로고침해주세요."));
+          console.error("❌ window.naver.maps 타임아웃 (6초)");
+          const currentOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+          setError(
+            new Error(
+              `지도 API 로드 타임아웃
+
+가능한 원인:
+1. 네트워크 연결 문제
+2. 인증 실패 (도메인 미등록)
+3. Maps API 서비스 비활성화
+
+해결 방법:
+1. 네트워크 연결 확인
+2. 네이버 클라우드 플랫폼 콘솔: https://console.ncloud.com/
+3. Client ID 확인
+4. 서비스 URL에 ${currentOrigin} 등록
+5. Maps API 서비스 활성화 확인
+6. 페이지 새로고침 (Ctrl+Shift+R)`
+            )
+          );
           setIsLoading(false);
           console.groupEnd();
         }
@@ -281,7 +383,7 @@ export function DetailMap({ tour, className }: DetailMapProps) {
         mapInstanceRef.current = null;
       }
     };
-  }, [tour.contentid, tour.title, tour.mapx, tour.mapy, lng, lat, valid]);
+  }, [tour.contentid, tour.title, tour.mapx, tour.mapy, lng, lat, valid, isInKoreaRange]);
 
   /**
    * 길찾기 버튼 핸들러
@@ -317,13 +419,58 @@ export function DetailMap({ tour, className }: DetailMapProps) {
 
   // 좌표가 유효하지 않은 경우
   if (!valid) {
+    const fullAddress = [tour.addr1, tour.addr2].filter(Boolean).join(" ");
+    const hasAddress = !!fullAddress;
+
+    // 주소 기반 네이버 지도 검색 URL 생성
+    const naverMapSearchUrl = hasAddress
+      ? `https://map.naver.com/v5/search/${encodeURIComponent(fullAddress)}`
+      : null;
+
     return (
       <section className={cn("rounded-lg border bg-card p-6", className)}>
         <h2 className="mb-4 text-xl font-semibold">위치 정보</h2>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="size-4" />
-          <span>관광지 위치 정보가 없습니다.</span>
-        </div>
+        
+        {hasAddress ? (
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 text-sm">
+              <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="font-medium text-foreground">주소</p>
+                <p className="text-muted-foreground">{fullAddress}</p>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border bg-muted/50 p-3 text-sm">
+              <p className="mb-2 text-muted-foreground">
+                좌표 정보가 없어 지도를 표시할 수 없습니다.
+              </p>
+              {naverMapSearchUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="w-full gap-2"
+                >
+                  <a
+                    href={naverMapSearchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <Navigation className="size-4" />
+                    네이버 지도에서 주소로 검색하기
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="size-4" />
+            <span>관광지 위치 정보가 없습니다.</span>
+          </div>
+        )}
       </section>
     );
   }

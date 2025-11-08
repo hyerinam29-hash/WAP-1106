@@ -238,6 +238,24 @@ cp .env.example .env
    NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL="/"
    ```
 
+**6-5. 네이버 지도 API 환경 변수 설정**
+
+1. [네이버 클라우드 플랫폼 콘솔](https://console.ncloud.com/) 접속
+2. **AI·Application Service** → **AI·NAVER API** → **Application 등록 정보**
+3. Application 선택 또는 새로 생성
+4. **Client ID** 복사
+5. `.env` 파일에 다음 추가:
+   ```env
+   NEXT_PUBLIC_NAVER_MAP_CLIENT_ID="<Client ID>"
+   ```
+6. **API 설정** 탭에서 **서비스 URL**에 다음 추가:
+   - 개발 환경: `http://localhost:3000`
+   - 배포 환경: `https://your-domain.com` (배포 후 추가)
+7. **Maps API 서비스** 활성화 확인
+8. 저장 후 개발 서버 재시작
+
+> **⚠️ 중요**: 네이버 지도 API는 도메인 기반 인증을 사용합니다. 새로운 도메인에서 사용하려면 콘솔에 추가 등록해야 합니다.
+
 #### 7. Cursor MCP 설정 (선택사항)
 
 > Cursor AI를 사용하는 경우, Supabase MCP 서버를 설정하면 AI가 데이터베이스를 직접 조회하고 관리할 수 있습니다.
@@ -408,5 +426,6 @@ saas-template/
 - [Supabase 문서](https://supabase.com/docs)
 - [shadcn/ui 문서](https://ui.shadcn.com/)
 - [Tailwind CSS v4 문서](https://tailwindcss.com/docs)
-#   w e p 1 1 0 6  
+#   w e p 1 1 0 6 
+ 
  
