@@ -23,7 +23,7 @@
 
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -100,10 +100,12 @@ export function TourSearch({
     }
   };
 
-  // 입력값 변경 시 keyword와 동기화
-  if (keyword !== inputValue && !keyword) {
-    setInputValue("");
-  }
+  // keyword prop 변경 시 inputValue 동기화
+  useEffect(() => {
+    if (keyword !== inputValue) {
+      setInputValue(keyword);
+    }
+  }, [keyword]);
 
   return (
     <div className={cn("w-full", className)}>
@@ -118,43 +120,52 @@ export function TourSearch({
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              // 엔터 키 처리 (명시적으로)
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const trimmedKeyword = inputValue.trim();
+                if (trimmedKeyword) {
+                  console.log("🔍 엔터 키로 검색 실행:", trimmedKeyword);
+                  onSearch(trimmedKeyword);
+                }
+              }
+            }}
             placeholder={placeholder}
-            className="pl-10 pr-10"
+            className={cn("pl-10", inputValue ? "pr-20" : "pr-12")}
             disabled={isLoading}
             aria-label="관광지 검색"
           />
-          {/* 초기화 버튼 (입력값이 있을 때만 표시) */}
-          {inputValue && (
-            <button
-              type="button"
-              onClick={handleReset}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="검색 초기화"
+          {/* 우측 버튼 영역 (초기화 또는 검색 버튼) */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {/* 초기화 버튼 (입력값이 있을 때만 표시) */}
+            {inputValue && (
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="검색 초기화"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+            {/* 검색 버튼 (인라인) */}
+            <Button
+              type="submit"
+              disabled={isLoading || !inputValue.trim()}
+              className="h-7 px-2"
+              size="sm"
+              variant="ghost"
+              aria-label="검색 실행"
             >
-              <X className="size-4" />
-            </button>
-          )}
+              {isLoading ? (
+                <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Search className="size-4" />
+              )}
+            </Button>
+          </div>
         </div>
-
-        {/* 검색 버튼 */}
-        <Button
-          type="submit"
-          disabled={isLoading || !inputValue.trim()}
-          className="mt-2 w-full"
-          size="sm"
-        >
-          {isLoading ? (
-            <>
-              <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              검색 중...
-            </>
-          ) : (
-            <>
-              <Search className="size-4" />
-              검색
-            </>
-          )}
-        </Button>
       </form>
 
       {/* 검색 결과 개수 표시 */}
